@@ -1,0 +1,2581 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DROVEXRA — Digital Knowledge Library &amp; Independent Publishing House</title>
+  <meta name="description" content="Explore ideas, strategies, and insights through carefully curated digital books. Read, learn, and grow — completely free." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/dist/umd/supabase.min.js"></script>
+  <script>
+    if (typeof window.tailwind !== 'undefined') {
+      window.tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            obsidian: '#080808',
+            charcoal: '#151515',
+            offwhite: '#F8F7FA',
+            purewhite: '#FFFFFF',
+            electric: '#7C3AED',
+            deeppurple: '#6D28D9',
+            muted: '#85818D',
+            lavender: '#EDE7F7'
+          },
+          fontFamily: {
+            serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+            sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          }
+        }
+      }
+    };
+    }
+  </script>
+  <style>
+    :root {
+      --bg-obsidian: #080808;
+      --bg-charcoal: #151515;
+      --text-offwhite: #F8F7FA;
+      --text-white: #FFFFFF;
+      --accent-electric: #7C3AED;
+      --accent-deep: #6D28D9;
+      --text-muted: #85818D;
+      --accent-lavender: #EDE7F7;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-obsidian);
+      color: var(--text-offwhite);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      overflow-x: hidden;
+      selection-background-color: #7C3AED;
+      selection-color: #FFFFFF;
+    }
+
+    ::selection {
+      background: rgba(124, 58, 237, 0.35);
+      color: #FFFFFF;
+    }
+
+    /* Editorial Typography */
+    .editorial-serif {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      letter-spacing: -0.015em;
+    }
+
+    .editorial-mono {
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.08em;
+    }
+
+    /* ThreeUI Component 1: PredictiveArcCanvas host */
+    .threeui-predictive-arc-frame {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 0;
+    }
+
+    /* ThreeUI Component 2: ThreeDPaper host */
+    .threeui-3d-paper-stage {
+      position: relative;
+      width: 100%;
+      height: 520px;
+      border-radius: 4px;
+      background: radial-gradient(circle at 50% 42%, rgba(124, 58, 237, 0.08) 0%, rgba(21, 21, 21, 0.65) 52%, rgba(8, 8, 8, 0.96) 100%);
+      border: 1px solid rgba(248, 247, 250, 0.08);
+      overflow: hidden;
+      cursor: pointer;
+      user-select: none;
+      transition: border-color 0.35s ease, box-shadow 0.35s ease;
+    }
+
+    .threeui-3d-paper-stage:hover {
+      border-color: rgba(237, 231, 247, 0.22);
+      box-shadow: 0 24px 60px -15px rgba(0, 0, 0, 0.85), 0 0 40px -10px rgba(124, 58, 237, 0.16);
+    }
+
+    .threeui-3d-paper-stage.is-dragging {
+      cursor: grabbing;
+    }
+
+    /* Film grain & vignette layer inside ThreeDPaper */
+    .threeui-paper-vignette {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(circle at center, transparent 55%, rgba(8, 8, 8, 0.68) 100%);
+      z-index: 2;
+    }
+
+    /* ThreeUI Component 3: ShaderButtons (Star Portal variant) */
+    .threeui-shader-btn {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.625rem;
+      padding: 0.68rem 1.35rem;
+      border-radius: 9999px;
+      background: #0B0A0E;
+      color: #F8F7FA;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      letter-spacing: 0.03em;
+      border: 1px solid rgba(237, 231, 247, 0.16);
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.3s ease, box-shadow 0.3s ease;
+      isolation: isolate;
+    }
+
+    .threeui-shader-btn:hover {
+      border-color: rgba(124, 58, 237, 0.65);
+      box-shadow: 0 0 28px -4px rgba(124, 58, 237, 0.38), inset 0 0 12px rgba(237, 231, 247, 0.08);
+      transform: translateY(-1px);
+    }
+
+    .threeui-shader-btn:active {
+      transform: translateY(0px) scale(0.985);
+    }
+
+    .threeui-shader-btn:focus-visible {
+      outline: 2px solid #7C3AED;
+      outline-offset: 3px;
+    }
+
+    .threeui-shader-btn canvas.star-portal-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: -1;
+      opacity: 0.88;
+      transition: opacity 0.3s ease;
+    }
+
+    .threeui-shader-btn:hover canvas.star-portal-canvas {
+      opacity: 1;
+    }
+
+    /* ThreeUI Component 4: RectangleButtons (Dark Glass variant) */
+    .threeui-rect-dark-glass {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.55rem;
+      padding: 0.68rem 1.25rem;
+      border-radius: 6px;
+      background: linear-gradient(180deg, rgba(32, 31, 36, 0.72) 0%, rgba(16, 16, 18, 0.88) 100%);
+      color: #F8F7FA;
+      font-size: 0.8125rem;
+      font-weight: 400;
+      letter-spacing: 0.025em;
+      border: 1px solid rgba(248, 247, 250, 0.12);
+      box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.12), 0 8px 20px -6px rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      cursor: pointer;
+      overflow: hidden;
+      transition: border-color 0.25s ease, background 0.25s ease, transform 0.2s ease, box-shadow 0.25s ease;
+    }
+
+    .threeui-rect-dark-glass::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 60%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(237, 231, 247, 0.09), transparent);
+      transform: skewX(-20deg);
+      transition: left 0.55s ease;
+      pointer-events: none;
+    }
+
+    .threeui-rect-dark-glass:hover::before {
+      left: 140%;
+    }
+
+    .threeui-rect-dark-glass:hover {
+      border-color: rgba(237, 231, 247, 0.28);
+      background: linear-gradient(180deg, rgba(40, 38, 46, 0.82) 0%, rgba(21, 21, 24, 0.94) 100%);
+      box-shadow: inset 0 1px 0 0 rgba(237, 231, 247, 0.22), 0 10px 26px -6px rgba(0, 0, 0, 0.75);
+      transform: translateY(-1px);
+    }
+
+    .threeui-rect-dark-glass:active {
+      transform: translateY(0px);
+    }
+
+    .threeui-rect-dark-glass:focus-visible {
+      outline: 2px solid #7C3AED;
+      outline-offset: 3px;
+    }
+
+    /* Editorial Book Card */
+    .book-editorial-card {
+      background: linear-gradient(180deg, rgba(21, 21, 21, 0.55) 0%, rgba(12, 12, 14, 0.85) 100%);
+      border: 1px solid rgba(248, 247, 250, 0.07);
+      transition: border-color 0.35s ease, transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.35s ease;
+    }
+
+    .book-editorial-card:hover {
+      border-color: rgba(248, 247, 250, 0.18);
+      transform: translateY(-4px);
+    }
+
+    .book-cover-frame {
+      position: relative;
+      aspect-ratio: 3 / 4;
+      width: 100%;
+      background: #0D0D0F;
+      overflow: hidden;
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.85);
+    }
+
+    .book-cover-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1), filter 0.45s ease;
+    }
+
+    .book-editorial-card:hover .book-cover-frame img {
+      transform: scale(1.025);
+    }
+
+    /* View Transitions */
+    .view-panel {
+      transition: opacity 0.38s cubic-bezier(0.22, 1, 0.36, 1), transform 0.38s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .view-hidden {
+      display: none !important;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    @media (max-width: 768px) {
+      .threeui-3d-paper-stage {
+        height: 390px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-obsidian text-offwhite min-h-screen flex flex-col justify-between">
+
+  <!-- TOP EDITORIAL NAVIGATION (Reference Image 1: Minimal, uncluttered, clear identity) -->
+  <header class="sticky top-0 z-40 bg-obsidian/85 backdrop-blur-md border-b border-white/[0.06]">
+    <div class="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 h-20 flex items-center justify-between">
+      <!-- Drovexra Wordmark & Restrained Brand Signature -->
+      <a href="#hero-section" id="nav-brand-link" class="group flex items-center gap-3 focus:outline-none">
+        <span class="w-2 h-2 rounded-full bg-electric transition-transform duration-300 group-hover:scale-125"></span>
+        <span class="text-sm sm:text-base font-medium tracking-[0.26em] text-purewhite uppercase">DROVEXRA</span>
+        <span class="hidden sm:inline-block text-[11px] editorial-mono text-muted border-l border-white/10 pl-3">EDITIONS</span>
+      </a>
+
+      <!-- Minimal Desktop Navigation Links -->
+      <nav aria-label="Primary Navigation" class="hidden md:flex items-center gap-10">
+        <a href="#library-section" id="nav-library-link" class="text-xs uppercase tracking-[0.18em] text-offwhite/80 hover:text-purewhite transition-colors">Library</a>
+        <a href="#about-section" id="nav-about-link" class="text-xs uppercase tracking-[0.18em] text-offwhite/80 hover:text-purewhite transition-colors">About</a>
+      </nav>
+
+      <!-- Minimal Menu Icon (Mobile & Quick Index Drawer Trigger) -->
+      <div class="flex items-center gap-3">
+        <button type="button" id="mobile-menu-trigger" aria-label="Toggle Navigation Menu" aria-expanded="false" class="p-2.5 text-offwhite/80 hover:text-purewhite border border-white/10 rounded hover:border-white/25 transition-colors">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <line x1="3" y1="8" x2="21" y2="8" />
+            <line x1="7" y1="16" x2="21" y2="16" />
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Minimal Collapsible Navigation Drawer -->
+    <div id="mobile-nav-drawer" class="hidden border-t border-white/[0.06] bg-charcoal/95 backdrop-blur-xl">
+      <div class="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">
+        <div class="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8">
+          <a href="#library-section" id="drawer-library-link" class="text-xs uppercase tracking-[0.2em] text-offwhite hover:text-lavender py-1">01 / The Library</a>
+          <a href="#about-section" id="drawer-about-link" class="text-xs uppercase tracking-[0.2em] text-offwhite hover:text-lavender py-1">02 / About Drovexra</a>
+          <button type="button" id="drawer-contact-btn" class="text-left text-xs uppercase tracking-[0.2em] text-muted hover:text-offwhite py-1">03 / Editorial Contact</button>
+        </div>
+        <div class="text-[11px] editorial-mono text-muted">
+          OPEN KNOWLEDGE ARCHIVE · FREE PUBLIC PDF EDITIONS
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===================================================================== -->
+  <!-- VIEW 1: MAIN HOME & EDITORIAL LIBRARY VIEW                            -->
+  <!-- ===================================================================== -->
+  <main id="home-view" class="view-panel flex-1">
+
+    <!-- HERO SECTION WITH THREEUI PREDICTIVE ARC CANVAS -->
+    <section id="hero-section" class="relative min-h-[78vh] flex items-center border-b border-white/[0.06] overflow-hidden">
+      <!-- ThreeUI Component: <PredictiveArcCanvas mode="dark" speed={1.00} hue={0} saturation={1.00} brightness={1.00} /> -->
+      <div class="threeui-predictive-arc-frame" aria-hidden="true">
+        <canvas
+          id="predictive-arc-canvas"
+          data-threeui-component="PredictiveArcCanvas"
+          data-variant="predictive-arc"
+          data-mode="dark"
+          data-speed="1.00"
+          data-hue="0"
+          data-saturation="1.00"
+          data-brightness="1.00"
+          class="w-full h-full block"
+        ></canvas>
+      </div>
+
+      <!-- Deliberate Negative Space & Editorial Composition -->
+      <div class="relative z-10 max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-24 sm:py-32 lg:py-40 w-full">
+        <div class="max-w-3xl">
+          <div class="inline-flex items-center gap-2.5 mb-8 px-3 py-1 rounded-full border border-white/10 bg-charcoal/60 backdrop-blur-sm">
+            <span class="w-1.5 h-1.5 rounded-full bg-electric"></span>
+            <span class="text-[11px] editorial-mono uppercase text-lavender/90">Digital Knowledge Library · Open Monographs</span>
+          </div>
+
+          <h1 class="editorial-serif text-4xl sm:text-6xl lg:text-7xl font-normal text-purewhite leading-[1.06] tracking-tight mb-7">
+            Knowledge That Moves You Forward.
+          </h1>
+
+          <p class="text-base sm:text-lg lg:text-xl text-muted font-light leading-relaxed max-w-2xl mb-12">
+            Explore ideas, strategies, and insights through carefully curated digital books. Read, learn, and grow — completely free.
+          </p>
+
+          <div class="flex flex-wrap items-center gap-5">
+            <!-- ThreeUI Component: <RectangleButtons variant="dark-glass" mode="dark" hue={0} saturation={1.00} brightness={1.00} /> -->
+            <button
+              type="button"
+              id="hero-explore-btn"
+              data-threeui-component="RectangleButtons"
+              data-variant="dark-glass"
+              data-mode="dark"
+              data-hue="0"
+              data-saturation="1.00"
+              data-brightness="1.00"
+              class="threeui-rect-dark-glass"
+            >
+              <span>Enter The Library</span>
+              <svg class="w-3.5 h-3.5 text-lavender" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              </svg>
+            </button>
+
+            <span id="hero-catalog-stat" class="text-xs editorial-mono text-muted pl-2">
+              DIGITAL LIBRARY · PDF EDITIONS COMING SOON
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- THE LIBRARY SECTION -->
+    <section id="library-section" class="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-24 sm:py-32">
+      <!-- Section Header & Restrained Controls -->
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-8 pb-12 border-b border-white/[0.07]">
+        <div>
+          <p class="text-[11px] editorial-mono uppercase text-electric mb-3">Curated Publications</p>
+          <h2 class="editorial-serif text-3xl sm:text-5xl font-normal text-purewhite tracking-tight mb-2">
+            The Library
+          </h2>
+          <p class="text-sm sm:text-base text-muted font-light">
+            Ideas worth keeping.
+          </p>
+        </div>
+
+        <!-- Search Filter -->
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <div class="relative">
+            <input
+              type="search"
+              id="library-search-input"
+              placeholder="Search title, author, topic..."
+              aria-label="Search books in the library"
+              class="w-full sm:w-64 bg-charcoal/90 text-xs text-offwhite placeholder-muted px-3.5 py-2.5 rounded border border-white/10 focus:border-electric focus:outline-none transition-colors"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Category Filter Pills -->
+      <div id="category-filter-bar" role="tablist" aria-label="Book Categories" class="flex items-center gap-2 overflow-x-auto py-6 no-scrollbar">
+        <button type="button" data-category="all" class="category-pill px-3.5 py-1.5 rounded-full text-xs editorial-mono uppercase transition-colors bg-purewhite text-obsidian font-medium">
+          All Volumes
+        </button>
+        <button type="button" data-category="Strategy & Business" class="category-pill px-3.5 py-1.5 rounded-full text-xs editorial-mono uppercase transition-colors bg-charcoal text-muted hover:text-offwhite border border-white/[0.07]">
+          Strategy &amp; Business
+        </button>
+        <button type="button" data-category="Systems & AI" class="category-pill px-3.5 py-1.5 rounded-full text-xs editorial-mono uppercase transition-colors bg-charcoal text-muted hover:text-offwhite border border-white/[0.07]">
+          Systems &amp; AI
+        </button>
+        <button type="button" data-category="Personal Mastery" class="category-pill px-3.5 py-1.5 rounded-full text-xs editorial-mono uppercase transition-colors bg-charcoal text-muted hover:text-offwhite border border-white/[0.07]">
+          Personal Mastery
+        </button>
+        <button type="button" data-category="Market Intelligence" class="category-pill px-3.5 py-1.5 rounded-full text-xs editorial-mono uppercase transition-colors bg-charcoal text-muted hover:text-offwhite border border-white/[0.07]">
+          Market Intelligence
+        </button>
+        <button type="button" data-category="Design & Craft" class="category-pill px-3.5 py-1.5 rounded-full text-xs editorial-mono uppercase transition-colors bg-charcoal text-muted hover:text-offwhite border border-white/[0.07]">
+          Design &amp; Craft
+        </button>
+        <button type="button" data-category="Execution & Growth" class="category-pill px-3.5 py-1.5 rounded-full text-xs editorial-mono uppercase transition-colors bg-charcoal text-muted hover:text-offwhite border border-white/[0.07]">
+          Execution &amp; Growth
+        </button>
+      </div>
+
+
+
+      <!-- Supabase Loading State -->
+      <div id="supabase-loading-state" class="hidden py-20 text-center border border-white/[0.06] rounded my-6 bg-charcoal/25">
+        <div class="inline-flex items-center gap-3 px-4 py-2 rounded-full border border-electric/30 bg-electric/10 mb-4">
+          <span class="w-2 h-2 rounded-full bg-electric animate-ping"></span>
+          <span class="text-xs editorial-mono uppercase text-lavender">Loading Digital Library</span>
+        </div>
+        <p class="editorial-serif text-2xl text-offwhite mb-1">Loading Digital Library...</p>
+        <p class="text-xs text-muted">Preparing curated editions</p>
+      </div>
+
+      <!-- Supabase Error State -->
+      <div id="supabase-error-state" class="hidden py-12 px-6 text-center border border-white/10 rounded my-6 bg-charcoal/40 max-w-2xl mx-auto">
+        <p class="text-[11px] editorial-mono uppercase text-lavender mb-2">Archive Notice</p>
+        <p id="supabase-error-title" class="editorial-serif text-2xl text-purewhite mb-2">Digital Archive Sync</p>
+        <p id="supabase-error-message" class="text-xs text-muted leading-relaxed mb-6">
+          New PDF editions are coming soon.
+        </p>
+        <div class="flex flex-wrap items-center justify-center gap-3">
+          <button type="button" id="supabase-retry-btn" class="threeui-shader-btn text-xs py-2 px-4">
+            <canvas class="star-portal-canvas"></canvas>
+            <span>Refresh Library</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Books Grid (Data-Driven Container) -->
+      <div id="books-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-9 gap-y-14 pt-6">
+        <!-- Populated dynamically from Supabase public.books or Coming Soon PDF block -->
+      </div>
+
+      <!-- Empty Search Filter State -->
+      <div id="library-empty-state" class="hidden py-16 text-center border border-dashed border-white/10 rounded my-6 px-4">
+        <p id="library-empty-heading" class="editorial-serif text-2xl text-offwhite mb-2">No matching editions found.</p>
+        <p id="library-empty-subtext" class="text-xs text-muted mb-6 max-w-md mx-auto">Try clearing your search filter or selecting All Volumes.</p>
+        <div class="flex flex-wrap items-center justify-center gap-3">
+          <button type="button" id="reset-filters-btn" class="threeui-rect-dark-glass text-xs">
+            Reset Library Filters
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABOUT DROVEXRA SECTION -->
+    <section id="about-section" class="border-t border-white/[0.06] bg-charcoal/30">
+      <div class="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-24 sm:py-32">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
+          <div class="lg:col-span-5">
+            <p class="text-[11px] editorial-mono uppercase text-electric mb-3">Who We Are</p>
+            <h2 class="editorial-serif text-3xl sm:text-5xl font-normal text-purewhite leading-tight mb-4">
+              About Drovexra
+            </h2>
+            <p class="text-xs editorial-mono text-muted uppercase">
+              Digital Growth Agency &amp; Knowledge Platform
+            </p>
+          </div>
+
+          <div class="lg:col-span-7 space-y-6">
+            <p class="editorial-serif text-2xl sm:text-3xl text-offwhite font-normal leading-relaxed border-l-2 border-electric/70 pl-6">
+              Drovexra is a digital growth agency focused on helping businesses strengthen their online presence, attract potential customers, and grow smarter. We combine creative design, digital marketing, high-converting websites, and AI-powered automation to build practical solutions for modern businesses.
+            </p>
+
+            <p class="text-sm sm:text-base text-muted font-light leading-relaxed pl-6">
+              Our approach is simple: understand the business, identify opportunities, and create solutions that deliver value. From engaging social media content to landing pages and automated lead systems, Drovexra helps turn ideas into meaningful business growth.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===================================================================== -->
+  <!-- VIEW 2: BOOK DETAILS & 3D FLOATING COVER DOWNLOAD EXPERIENCE          -->
+  <!-- ===================================================================== -->
+  <section id="book-detail-view" aria-label="Book Details and PDF Download View" class="view-panel view-hidden flex-1 bg-obsidian">
+    <div class="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 py-10 sm:py-16">
+      <!-- Top Back Bar (Always Accessible) -->
+      <div class="flex items-center justify-between pb-8 mb-10 border-b border-white/[0.07]">
+        <button
+          type="button"
+          id="back-to-library-btn"
+          class="group inline-flex items-center gap-3 text-xs uppercase tracking-[0.2em] text-offwhite hover:text-lavender transition-colors py-2 pr-4 focus:outline-none"
+        >
+          <span class="w-8 h-8 rounded-full border border-white/15 group-hover:border-electric flex items-center justify-center transition-colors">
+            <svg class="w-4 h-4 transform group-hover:-translate-x-0.5 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 12H5m0 0l6-6m-6 6l6 6" />
+            </svg>
+          </span>
+          <span>Back to Library</span>
+        </button>
+
+        <div id="detail-edition-badge" class="text-[11px] editorial-mono text-muted uppercase">
+          DROVEXRA ARCHIVE // EDITION 01
+        </div>
+      </div>
+
+      <!-- Main Two-Column Book Experience -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+
+        <!-- Left Column: ThreeUI ThreeDPaper Floating Book Cover -->
+        <div class="lg:col-span-6 flex flex-col items-center">
+          <!-- ThreeUI Component: <ThreeDPaper variant="original" /> -->
+          <div
+            id="threed-paper-stage"
+            role="button"
+            tabindex="0"
+            aria-label="Floating 3D Book Cover — Click cover to download PDF"
+            data-threeui-component="ThreeDPaper"
+            data-variant="original"
+            class="threeui-3d-paper-stage"
+          >
+            <div class="threeui-paper-vignette"></div>
+            <!-- Status Pill inside 3D stage -->
+            <div class="absolute top-4 left-4 z-10 flex items-center gap-2 px-3 py-1 rounded-full bg-obsidian/80 border border-white/10 backdrop-blur-md pointer-events-none">
+              <span id="stage-status-dot" class="w-1.5 h-1.5 rounded-full bg-electric"></span>
+              <span id="stage-status-label" class="text-[10px] editorial-mono uppercase text-lavender">ThreeDPaper · Original Variant</span>
+            </div>
+            <div class="absolute bottom-4 left-4 right-4 z-10 flex items-center justify-between text-[11px] editorial-mono text-muted/90 bg-obsidian/75 px-3.5 py-2 rounded border border-white/[0.06] backdrop-blur-md pointer-events-none">
+              <span id="stage-click-prompt">Click floating cover to download PDF</span>
+              <span class="hidden sm:inline text-offwhite/60">Drag to rotate · Hover to light</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Editorial Metadata & Download Controls -->
+        <div class="lg:col-span-6 space-y-7">
+          <div class="flex flex-wrap items-center gap-3">
+            <span id="detail-category" class="text-xs editorial-mono uppercase text-electric">Strategy &amp; Business</span>
+            <span class="text-white/20">·</span>
+            <span class="px-2.5 py-0.5 text-[11px] editorial-mono uppercase bg-charcoal border border-white/10 rounded text-lavender">PDF Format</span>
+            <span id="detail-availability-badge" class="px-2.5 py-0.5 text-[11px] editorial-mono uppercase rounded bg-electric/15 text-lavender border border-electric/30">
+              Free Download Available
+            </span>
+          </div>
+
+          <div>
+            <h1 id="detail-title" class="editorial-serif text-3xl sm:text-5xl font-normal text-purewhite leading-[1.1] mb-3">
+              The Architecture of Quiet Leverage
+            </h1>
+            <p id="detail-author" class="text-xs editorial-mono uppercase text-muted">
+              By Drovexra Editorial Press
+            </p>
+          </div>
+
+          <p id="detail-description" class="text-sm sm:text-base text-offwhite/85 font-light leading-relaxed">
+            An examination of compounding operational systems, asymmetric decision frameworks, and the discipline of building high-conviction enterprises without noise.
+          </p>
+
+          <!-- Key Takeaways / Chapters Preview -->
+          <div class="border-t border-b border-white/[0.08] py-5 space-y-3">
+            <p class="text-[11px] editorial-mono uppercase text-muted">Inside This Volume</p>
+            <ul id="detail-highlights" class="space-y-2 text-xs sm:text-sm text-offwhite/80 font-light">
+              <!-- Populated dynamically -->
+            </ul>
+          </div>
+
+          <!-- Technical File Specification Row -->
+          <div class="grid grid-cols-3 gap-4 text-xs editorial-mono">
+            <div class="bg-charcoal/60 p-3 rounded border border-white/[0.05]">
+              <span class="block text-[10px] text-muted uppercase mb-1">Format</span>
+              <span id="detail-spec-format" class="text-offwhite">PDF 1.4 (Vector)</span>
+            </div>
+            <div class="bg-charcoal/60 p-3 rounded border border-white/[0.05]">
+              <span class="block text-[10px] text-muted uppercase mb-1">Length</span>
+              <span id="detail-spec-pages" class="text-offwhite">48 Pages</span>
+            </div>
+            <div class="bg-charcoal/60 p-3 rounded border border-white/[0.05]">
+              <span class="block text-[10px] text-muted uppercase mb-1">Source</span>
+              <span id="detail-spec-source" class="text-offwhite">Owner Verified</span>
+            </div>
+          </div>
+
+          <!-- Unavailable PDF Warning Box (Shown ONLY when pdfAvailable is false) -->
+          <div id="detail-unavailable-box" class="hidden p-4 rounded bg-charcoal border border-white/15 space-y-3">
+            <div class="flex items-start gap-3">
+              <span class="w-2 h-2 rounded-full bg-muted mt-1.5 shrink-0"></span>
+              <div>
+                <p class="text-xs font-medium text-purewhite uppercase tracking-wider mb-1">PDF Edition Not Yet Uploaded</p>
+                <p class="text-xs text-muted leading-relaxed">
+                  The website owner has cataloged this publication, but the final PDF manuscript has not been uploaded yet. No fake download link will be generated.
+                </p>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Action Controls (Accessible Download Button + Secondary Preview Action) -->
+          <div id="detail-actions-row" class="flex flex-wrap items-center gap-4 pt-2">
+            <!-- ThreeUI Component: <ShaderButtons mode="dark" hue={0} saturation={1.00} brightness={1.00} /> -->
+            <button
+              type="button"
+              id="detail-download-btn"
+              data-threeui-component="ShaderButtons"
+              data-variant="star-portal"
+              data-mode="dark"
+              data-hue="0"
+              data-saturation="1.00"
+              data-brightness="1.00"
+              class="threeui-shader-btn px-6 py-3"
+            >
+              <canvas class="star-portal-canvas"></canvas>
+              <svg class="w-4 h-4 text-lavender" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v12m0 0l-4-4m4 4l4-4M4 20h16" />
+              </svg>
+              <span id="detail-download-btn-label">Download Free PDF</span>
+            </button>
+
+            <!-- Secondary Action: Read Excerpt Inline -->
+            <button
+              type="button"
+              id="detail-excerpt-btn"
+              data-threeui-component="RectangleButtons"
+              data-variant="dark-glass"
+              class="threeui-rect-dark-glass py-3 px-5"
+            >
+              <span>Read Opening Excerpt</span>
+            </button>
+          </div>
+
+          <p class="text-[11px] text-muted font-light">
+            Tip: You can also click directly on the floating 3D book cover to start the PDF download.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================================================================== -->
+  <!-- TWO-STEP SECRET ACCESS CODE GATE MODAL (SHA-256 PROTECTED)            -->
+  <!-- ===================================================================== -->
+  <div id="secret-gate-modal" role="dialog" aria-modal="true" aria-labelledby="secret-gate-title" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-obsidian/90 backdrop-blur-md">
+    <div class="bg-charcoal border border-white/15 rounded-md max-w-md w-full shadow-2xl p-6 sm:p-7 space-y-5">
+      <div class="flex items-start justify-between gap-4 border-b border-white/10 pb-4">
+        <div>
+          <p id="secret-gate-step-badge" class="text-[10px] editorial-mono uppercase text-electric mb-1">Security Verification · Step 1 of 2</p>
+          <h2 id="secret-gate-title" class="editorial-serif text-2xl text-purewhite">Restricted Access</h2>
+        </div>
+        <button type="button" id="close-secret-gate-btn" aria-label="Close Security Gate" class="p-1.5 text-muted hover:text-purewhite border border-white/10 rounded text-xs">
+          ✕
+        </button>
+      </div>
+
+      <form id="secret-gate-form" class="space-y-4">
+        <p id="secret-gate-instruction" class="text-xs text-muted leading-relaxed">
+          Enter the owner secret code to initiate authorization.
+        </p>
+        <div>
+          <label for="secret-code-input" class="block text-[11px] editorial-mono uppercase text-offwhite/80 mb-1.5">Secret Access Code</label>
+          <input
+            type="password"
+            id="secret-code-input"
+            autocomplete="off"
+            required
+            placeholder="•••••••••••••••••"
+            class="w-full bg-obsidian text-xs text-purewhite px-3.5 py-2.5 rounded border border-white/15 focus:border-electric focus:outline-none tracking-widest"
+          />
+        </div>
+        <p id="secret-gate-error" class="hidden text-xs text-rose-400 editorial-mono"></p>
+        <div class="flex items-center justify-end gap-3 pt-2">
+          <button type="button" id="cancel-secret-gate-btn" class="threeui-rect-dark-glass text-xs py-2 px-4">
+            Cancel
+          </button>
+          <button type="submit" id="submit-secret-gate-btn" class="threeui-shader-btn text-xs py-2 px-5">
+            <canvas class="star-portal-canvas"></canvas>
+            <span id="submit-secret-gate-label">Verify Code (1/2)</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- OWNER PDF & BOOK MANAGEMENT MODAL ("CURATOR STUDIO")                  -->
+  <!-- ===================================================================== -->
+  <div id="curator-modal" role="dialog" aria-modal="true" aria-labelledby="curator-modal-title" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-obsidian/85 backdrop-blur-md">
+    <div class="bg-charcoal border border-white/15 rounded-md max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl p-6 sm:p-8 space-y-6">
+      <div class="flex items-start justify-between gap-4 border-b border-white/10 pb-5">
+        <div>
+          <p class="text-[11px] editorial-mono uppercase text-electric mb-1">Publisher Administration</p>
+          <h2 id="curator-modal-title" class="editorial-serif text-2xl sm:text-3xl text-purewhite">
+            Drovexra Owner Studio — Book &amp; PDF Management
+          </h2>
+          <p class="text-xs text-muted mt-1">
+            Upload real PDF files, add new volumes to the library, or attach missing manuscripts. Changes persist locally in your browser.
+          </p>
+        </div>
+        <button type="button" id="close-curator-modal-btn" aria-label="Close Owner Studio" class="p-2 text-muted hover:text-purewhite border border-white/10 rounded">
+          ✕
+        </button>
+      </div>
+
+      <!-- Add / Edit Book Form -->
+      <form id="owner-book-form" class="space-y-4 bg-obsidian/60 p-5 rounded border border-white/[0.07]">
+        <div class="flex items-center justify-between">
+          <h3 id="owner-form-heading" class="text-xs editorial-mono uppercase text-lavender">Add New Volume or Update Existing</h3>
+          <button type="button" id="owner-form-clear-btn" class="text-[11px] editorial-mono text-muted hover:text-purewhite underline">
+            Reset Form
+          </button>
+        </div>
+        <input type="hidden" id="book-id-input" value="" />
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="book-title-input" class="block text-xs text-muted mb-1">Book Title *</label>
+            <input type="text" id="book-title-input" required placeholder="e.g., The Systems Monograph" class="w-full bg-charcoal text-xs text-offwhite px-3 py-2.5 rounded border border-white/10 focus:border-electric focus:outline-none" />
+          </div>
+          <div>
+            <label for="book-author-input" class="block text-xs text-muted mb-1">Author / Publisher *</label>
+            <input type="text" id="book-author-input" required placeholder="e.g., Drovexra Press" class="w-full bg-charcoal text-xs text-offwhite px-3 py-2.5 rounded border border-white/10 focus:border-electric focus:outline-none" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="book-category-input" class="block text-xs text-muted mb-1">Category *</label>
+            <select id="book-category-input" class="w-full bg-charcoal text-xs text-offwhite px-3 py-2.5 rounded border border-white/10 focus:border-electric focus:outline-none">
+              <option value="Strategy & Business">Strategy &amp; Business</option>
+              <option value="Systems & AI">Systems &amp; AI</option>
+              <option value="Personal Mastery">Personal Mastery</option>
+              <option value="Market Intelligence">Market Intelligence</option>
+              <option value="Design & Craft">Design &amp; Craft</option>
+              <option value="Execution & Growth">Execution &amp; Growth</option>
+            </select>
+          </div>
+          <div>
+            <label for="book-cover-input" class="block text-xs text-muted mb-1">Cover Image Upload (Optional — uses editorial cover if omitted)</label>
+            <input type="file" id="book-cover-input" accept="image/*" class="w-full bg-charcoal text-xs text-muted file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:bg-white/10 file:text-offwhite hover:file:bg-white/20 px-2 py-1.5 rounded border border-white/10" />
+          </div>
+        </div>
+
+        <div>
+          <label for="book-desc-input" class="block text-xs text-muted mb-1">Editorial Description *</label>
+          <textarea id="book-desc-input" rows="2" required placeholder="Concise description of the book's core thesis and value..." class="w-full bg-charcoal text-xs text-offwhite px-3 py-2 rounded border border-white/10 focus:border-electric focus:outline-none"></textarea>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center pt-1">
+          <div>
+            <label for="book-pdf-input" class="block text-xs text-muted mb-1">Upload Real PDF File (.pdf)</label>
+            <input type="file" id="book-pdf-input" accept="application/pdf,.pdf" class="w-full bg-charcoal text-xs text-muted file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:text-xs file:bg-electric/25 file:text-lavender hover:file:bg-electric/40 px-2 py-1.5 rounded border border-white/10" />
+          </div>
+          <div class="flex items-center gap-2.5 pt-4">
+            <input type="checkbox" id="book-generate-pdf-checkbox" checked class="rounded bg-charcoal border-white/20 text-electric focus:ring-electric" />
+            <label for="book-generate-pdf-checkbox" class="text-xs text-offwhite/85">
+              Compile real downloadable Drovexra PDF if no external file is selected (uncheck to test "PDF Unavailable" state)
+            </label>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-3">
+          <button type="submit" id="save-book-submit-btn" class="threeui-shader-btn text-xs py-2.5 px-5">
+            <canvas class="star-portal-canvas"></canvas>
+            <span>Save Volume to Library</span>
+          </button>
+        </div>
+      </form>
+
+      <!-- Existing Catalog Management List -->
+      <div class="space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs editorial-mono uppercase text-muted">Current Catalog &amp; PDF Status</h3>
+          <button type="button" id="restore-default-catalog-btn" class="text-[11px] editorial-mono text-muted hover:text-lavender">
+            Restore Default Catalog
+          </button>
+        </div>
+        <div id="owner-catalog-list" class="divide-y divide-white/[0.07] border border-white/[0.07] rounded bg-obsidian/40">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- EXCERPT READER / CONTACT MODAL                                        -->
+  <!-- ===================================================================== -->
+  <div id="info-modal" role="dialog" aria-modal="true" aria-labelledby="info-modal-title" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-obsidian/85 backdrop-blur-md">
+    <div class="bg-charcoal border border-white/15 rounded-md max-w-2xl w-full max-h-[85vh] overflow-y-auto shadow-2xl p-6 sm:p-8 space-y-5">
+      <div class="flex items-start justify-between gap-4 border-b border-white/10 pb-4">
+        <div>
+          <p id="info-modal-kicker" class="text-[11px] editorial-mono uppercase text-electric mb-1">Editorial Excerpt</p>
+          <h2 id="info-modal-title" class="editorial-serif text-2xl sm:text-3xl text-purewhite">Volume Preview</h2>
+        </div>
+        <button type="button" id="close-info-modal-btn" aria-label="Close Dialog" class="p-2 text-muted hover:text-purewhite border border-white/10 rounded">
+          ✕
+        </button>
+      </div>
+      <div id="info-modal-body" class="text-sm text-offwhite/85 font-light leading-relaxed space-y-4">
+        <!-- Dynamic content -->
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast-container" aria-live="polite" class="fixed bottom-6 right-6 z-50 pointer-events-none flex flex-col gap-2 max-w-sm"></div>
+
+  <!-- ===================================================================== -->
+  <!-- MINIMAL FOOTER                                                        -->
+  <!-- ===================================================================== -->
+  <footer class="border-t border-white/[0.06] bg-obsidian py-16">
+    <div class="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-8">
+      <div class="space-y-2">
+        <div class="flex items-center gap-2.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-electric"></span>
+          <span class="text-xs font-medium tracking-[0.26em] text-purewhite uppercase">DROVEXRA</span>
+        </div>
+        <p class="text-xs text-muted font-light max-w-sm">
+          A digital knowledge library offering curated books, business strategy, and practical insights — free and open to everyone.
+        </p>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-8 text-xs uppercase tracking-[0.16em] text-muted">
+        <a href="#about-section" id="footer-about-link" class="hover:text-purewhite transition-colors">About</a>
+        <a href="#library-section" id="footer-library-link" class="hover:text-purewhite transition-colors">Library</a>
+        <button type="button" id="footer-contact-btn" class="hover:text-purewhite transition-colors uppercase tracking-[0.16em]">Contact</button>
+      </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-5 sm:px-8 lg:px-12 mt-10 pt-8 border-t border-white/[0.04] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-[11px] editorial-mono text-muted">
+      <div class="flex items-center gap-2.5">
+        <span>© 2026 DROVEXRA. All rights reserved.</span>
+        <!-- Hidden box near bottom on the side of All rights reserved -->
+        <button
+          type="button"
+          id="hidden-vault-trigger"
+          aria-label="Access Vault"
+          title=""
+          class="w-3.5 h-3.5 rounded-[2px] bg-white/[0.02] border border-white/[0.05] hover:border-white/[0.15] focus:outline-none transition-colors cursor-pointer"
+        ></button>
+      </div>
+      <span>LESS ELEMENTS · BETTER COMPOSITION</span>
+    </div>
+  </footer>
+
+  <!-- ===================================================================== -->
+  <!-- APPLICATION & THREEUI RUNTIME SCRIPT                                  -->
+  <!-- ===================================================================== -->
+  <script>
+    (function () {
+      'use strict';
+
+      const prefersReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      // -------------------------------------------------------------------
+      // 0. FIPS 180-4 SHA-256 ENGINE & KEYSTREAM CREDENTIAL VAULT
+      //    Hides Project URL and Publishable Anon Key from plain-text source
+      //    inspection and verifies SHA-256 cryptographic integrity at runtime.
+      // -------------------------------------------------------------------
+      const DrovexraCryptoVault = (function () {
+        const K = [
+          0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+          0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+          0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+          0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+          0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+          0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+          0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+          0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
+        ];
+
+        function rotr(n, x) { return (x >>> n) | (x << (32 - n)); }
+
+        function sha256Bytes(asciiStr) {
+          const msg = new TextEncoder().encode(asciiStr);
+          const bitLen = msg.length * 8;
+          const padLen = ((msg.length + 9 + 63) & ~63);
+          const buf = new Uint8Array(padLen);
+          buf.set(msg);
+          buf[msg.length] = 0x80;
+          const view = new DataView(buf.buffer);
+          view.setUint32(padLen - 4, bitLen >>> 0, false);
+          view.setUint32(padLen - 8, Math.floor(bitLen / 0x100000000), false);
+
+          let H0 = 0x6a09e667, H1 = 0xbb67ae85, H2 = 0x3c6ef372, H3 = 0xa54ff53a;
+          let H4 = 0x510e527f, H5 = 0x9b05688c, H6 = 0x1f83d9ab, H7 = 0x5be0cd19;
+          const W = new Uint32Array(64);
+
+          for (let offset = 0; offset < padLen; offset += 64) {
+            for (let i = 0; i < 16; i++) {
+              W[i] = view.getUint32(offset + i * 4, false);
+            }
+            for (let i = 16; i < 64; i++) {
+              const s0 = rotr(7, W[i - 15]) ^ rotr(18, W[i - 15]) ^ (W[i - 15] >>> 3);
+              const s1 = rotr(17, W[i - 2]) ^ rotr(19, W[i - 2]) ^ (W[i - 2] >>> 10);
+              W[i] = (W[i - 16] + s0 + W[i - 7] + s1) >>> 0;
+            }
+            let a = H0, b = H1, c = H2, d = H3, e = H4, f = H5, g = H6, h = H7;
+            for (let i = 0; i < 64; i++) {
+              const S1 = rotr(6, e) ^ rotr(11, e) ^ rotr(25, e);
+              const ch = (e & f) ^ (~e & g);
+              const temp1 = (h + S1 + ch + K[i] + W[i]) >>> 0;
+              const S0 = rotr(2, a) ^ rotr(13, a) ^ rotr(22, a);
+              const maj = (a & b) ^ (a & c) ^ (b & c);
+              const temp2 = (S0 + maj) >>> 0;
+              h = g; g = f; f = e; e = (d + temp1) >>> 0;
+              d = c; c = b; b = a; a = (temp1 + temp2) >>> 0;
+            }
+            H0 = (H0 + a) >>> 0; H1 = (H1 + b) >>> 0; H2 = (H2 + c) >>> 0; H3 = (H3 + d) >>> 0;
+            H4 = (H4 + e) >>> 0; H5 = (H5 + f) >>> 0; H6 = (H6 + g) >>> 0; H7 = (H7 + h) >>> 0;
+          }
+
+          const out = new Uint8Array(32);
+          const outView = new DataView(out.buffer);
+          [H0, H1, H2, H3, H4, H5, H6, H7].forEach(function (w, idx) {
+            outView.setUint32(idx * 4, w, false);
+          });
+          return out;
+        }
+
+        function bytesToHex(bytes) {
+          return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        const VAULT_SALT = 'DROVEXRA::STATIC_VAULT::2026::v1';
+
+        // Obfuscated SHA-256-CTR cipher shards & SHA-256 verification digests
+        const VAULT_SHARDS = {
+          SB_URL: {
+            cipher: [196, 9, 196, 229, 123, 163, 152, 92, 216, 122, 72, 200, 162, 189, 113, 22, 125, 172, 86, 137, 123, 176, 119, 132, 165, 25, 70, 57, 80, 239, 248, 58, 42, 4, 100, 104, 4, 121, 12, 243],
+            sha256: '5a3b0fabe802040911886322fa8a6569a8f5c6fc6f027ae6e3d9d199a676be7f'
+          },
+          SB_REST: {
+            cipher: [205, 153, 1, 83, 21, 115, 54, 155, 139, 161, 46, 47, 157, 210, 56, 10, 99, 202, 190, 110, 137, 115, 81, 222, 112, 200, 94, 159, 90, 7, 172, 150, 33, 159, 115, 197, 177, 241, 32, 67, 55, 181, 80, 246, 184, 30, 72, 33, 83],
+            sha256: 'b520d8772b42a1cce006ff1ed18855303ac8d149383c96603c62fa0ae4e1a605'
+          },
+          SB_ANON: {
+            cipher: [208, 113, 228, 153, 133, 18, 132, 181, 130, 230, 138, 32, 162, 188, 230, 25, 189, 53, 46, 230, 159, 82, 223, 35, 67, 139, 149, 90, 193, 234, 30, 233, 203, 148, 165, 48, 226, 212, 230, 4, 217, 225, 36, 113, 245, 1, 123, 166, 159, 15, 253, 13, 77, 129, 127, 18, 184, 19, 56, 162, 225, 44, 101, 106, 23, 74, 104, 46, 87, 52, 180, 124, 35, 47, 239, 95, 245, 195, 218, 207, 88, 242, 128, 151, 237, 204, 146, 110, 94, 27, 81, 236, 187, 217, 162, 11, 62, 104, 150, 47, 53, 72, 192, 200, 33, 113, 254, 57, 224, 48, 225, 191, 35, 128, 229, 49, 208, 232, 189, 164, 92, 217, 252, 80, 184, 218, 148, 94, 245, 160, 255, 63, 158, 165, 70, 253, 88, 194, 162, 227, 129, 128, 151, 31, 158, 47, 210, 124, 99, 24, 151, 205, 147, 0, 46, 247, 215, 53, 61, 215, 73, 114, 194, 76, 255, 102, 227, 9, 107, 229, 114, 33, 250, 126, 97, 226, 164, 76, 81, 30, 161, 229, 203, 35, 105, 193, 220, 38, 200, 152, 194, 102, 80, 90, 202, 69, 51, 96, 128, 91, 136, 21, 1, 87, 160, 44, 4, 63],
+            sha256: '5129f72d0b6f98cb709b800aa1136dbdde37211dc0ae1e5170cca065b6004282'
+          }
+        };
+
+        function unlockSecret(label) {
+          const entry = VAULT_SHARDS[label];
+          if (!entry) return '';
+          const len = entry.cipher.length;
+          const stream = new Uint8Array(len);
+          let pos = 0;
+          let counter = 0;
+          while (pos < len) {
+            const block = sha256Bytes(VAULT_SALT + ':' + label + ':' + counter);
+            const copyLen = Math.min(32, len - pos);
+            stream.set(block.subarray(0, copyLen), pos);
+            pos += copyLen;
+            counter++;
+          }
+          const plainBytes = new Uint8Array(len);
+          for (let i = 0; i < len; i++) {
+            plainBytes[i] = entry.cipher[i] ^ stream[i];
+          }
+          const decoded = new TextDecoder().decode(plainBytes);
+          const digest = bytesToHex(sha256Bytes(decoded));
+          if (digest !== entry.sha256) {
+            throw new Error('Vault SHA-256 integrity mismatch for ' + label);
+          }
+          return decoded;
+        }
+
+        // Salted SHA-256 digests for two-step Owner Studio secret gate verification
+        const GATE_STAGE_SALTS = {
+          1: 'DROVEXRA::OWNER_GATE_STAGE_1::2026',
+          2: 'DROVEXRA::OWNER_GATE_STAGE_2::2026'
+        };
+        const GATE_STAGE_HASHES = {
+          1: 'bfaed2060007e3cc423e5ffc3bca89ce7ecd19e78f72445e156065240d147263',
+          2: 'd317262561e84d2d9c5236a29c6ffe17ed70e42d2258e03f26041d81d652283b'
+        };
+
+        return {
+          getProjectUrl: function () {
+            const rawRest = unlockSecret('SB_REST');
+            return rawRest.replace(/\/rest\/v1\/?$/, '');
+          },
+          getRestEndpoint: function () {
+            return unlockSecret('SB_REST');
+          },
+          getAnonKey: function () {
+            return unlockSecret('SB_ANON');
+          },
+          verifyOwnerGateStage: function (stage, candidateInput) {
+            const salt = GATE_STAGE_SALTS[stage];
+            const expectedHash = GATE_STAGE_HASHES[stage];
+            if (!salt || !expectedHash) return false;
+            const digest = bytesToHex(sha256Bytes(salt + ':' + String(candidateInput || '').trim()));
+            return digest === expectedHash;
+          }
+        };
+      })();
+
+      // Initialize Supabase JS Client (Read-Only Public Visitor Client)
+      let supabaseClient = null;
+      const COVER_BUCKET = 'book-covers';
+      const PDF_BUCKET = 'book-pdfs';
+
+      function getSupabaseClient() {
+        if (supabaseClient) return supabaseClient;
+        if (window.supabase && typeof window.supabase.createClient === 'function') {
+          const projectUrl = DrovexraCryptoVault.getProjectUrl();
+          const anonKey = DrovexraCryptoVault.getAnonKey();
+          supabaseClient = window.supabase.createClient(projectUrl, anonKey, {
+            auth: { persistSession: false, autoRefreshToken: false }
+          });
+        }
+        return supabaseClient;
+      }
+
+      function buildPublicStorageUrl(bucketName, filePath) {
+        if (!filePath || !String(filePath).trim()) return '';
+        const trimmed = String(filePath).trim();
+        if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('data:')) {
+          return trimmed;
+        }
+        const cleanPath = trimmed.replace(/^\/+/, '').replace(new RegExp('^' + bucketName + '\/'), '');
+        const client = getSupabaseClient();
+        if (client && client.storage) {
+          const res = client.storage.from(bucketName).getPublicUrl(cleanPath);
+          if (res && res.data && res.data.publicUrl) {
+            return res.data.publicUrl;
+          }
+        }
+        const baseUrl = DrovexraCryptoVault.getProjectUrl();
+        return baseUrl + '/storage/v1/object/public/' + bucketName + '/' + encodeURI(cleanPath);
+      }
+
+      // -------------------------------------------------------------------
+      // 1. INITIAL DATA-DRIVEN BOOK CATALOG (Fallback / Showcase Archive)
+      // -------------------------------------------------------------------
+      const DEFAULT_BOOKS = [];
+
+      // Minimalist procedural SVG cover for newly added volumes or Coming Soon block
+      const COMING_SOON_COVER_SVG = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800" width="600" height="800">' +
+        '<rect width="600" height="800" fill="#080808"/>' +
+        '<rect x="24" y="24" width="552" height="752" fill="#0D0D11" stroke="rgba(248,247,250,0.12)" stroke-width="1"/>' +
+        '<line x1="48" y1="76" x2="552" y2="76" stroke="rgba(124,58,237,0.45)" stroke-width="1"/>' +
+        '<text x="48" y="56" fill="#F8F7FA" font-family="monospace" font-size="13" letter-spacing="3">DROVEXRA</text>' +
+        '<text x="415" y="56" fill="#85818D" font-family="monospace" font-size="12" letter-spacing="2">PDF ARCHIVE</text>' +
+        '<circle cx="300" cy="360" r="96" fill="none" stroke="rgba(124,58,237,0.35)" stroke-width="1.2"/>' +
+        '<circle cx="300" cy="360" r="64" fill="rgba(124,58,237,0.06)" stroke="rgba(237,231,247,0.22)" stroke-width="1"/>' +
+        '<text x="300" y="365" text-anchor="middle" fill="#EDE7F7" font-family="serif" font-size="22" letter-spacing="4">COMING SOON</text>' +
+        '<text x="48" y="650" fill="#FFFFFF" font-family="serif" font-size="38">Coming Soon</text>' +
+        '<text x="48" y="685" fill="#85818D" font-family="sans-serif" font-size="14">New digital books &amp; PDF editions in preparation</text>' +
+        '<line x1="48" y1="726" x2="552" y2="726" stroke="rgba(248,247,250,0.1)" stroke-width="1"/>' +
+        '<text x="48" y="750" fill="#85818D" font-family="monospace" font-size="12" letter-spacing="2">DROVEXRA LIBRARY</text>' +
+        '<text x="445" y="750" fill="#EDE7F7" font-family="monospace" font-size="12" letter-spacing="2">CPMING SOON</text>' +
+        '</svg>'
+      );
+
+      // In-memory store for owner-uploaded PDF Blobs/DataURLs
+      const uploadedPdfBlobs = new Map();
+
+      function loadCatalog() {
+        try {
+          localStorage.removeItem('drovexra_catalog_v1');
+          const saved = localStorage.getItem('drovexra_catalog_v3_clean');
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed)) {
+              return parsed;
+            }
+          }
+        } catch (err) {
+          // Ignore storage restrictions
+        }
+        return [];
+      }
+
+      function saveCatalog(books) {
+        try {
+          localStorage.setItem('drovexra_catalog_v3_clean', JSON.stringify(books));
+        } catch (err) {
+          // Ignore storage quota errors in sandboxed preview
+        }
+      }
+
+      let booksCatalog = loadCatalog();
+      let activeCategory = 'all';
+      let searchQuery = '';
+      let currentBook = booksCatalog[0];
+      let lastScrollY = 0;
+
+      // -------------------------------------------------------------------
+      // 2. REAL PDF 1.4 BINARY GENERATOR (Produces genuine multi-page PDFs)
+      // -------------------------------------------------------------------
+      function escapePdfText(str) {
+        return String(str || '')
+          .replace(/[^\x20-\x7E]/g, ' ')
+          .replace(/\\/g, '\\\\')
+          .replace(/\(/g, '\\(')
+          .replace(/\)/g, '\\)');
+      }
+
+      function wrapLines(text, maxChars) {
+        const words = String(text || '').split(/\s+/);
+        const lines = [];
+        let current = '';
+        for (let i = 0; i < words.length; i++) {
+          const w = words[i];
+          if ((current + ' ' + w).trim().length <= maxChars) {
+            current = (current + ' ' + w).trim();
+          } else {
+            if (current) lines.push(current);
+            current = w;
+          }
+        }
+        if (current) lines.push(current);
+        return lines;
+      }
+
+      function createGenuinePdfBlob(book) {
+        // If owner uploaded a custom PDF file blob in this session, return it directly
+        if (uploadedPdfBlobs.has(book.id)) {
+          return uploadedPdfBlobs.get(book.id);
+        }
+        if (book.customPdfDataUrl && book.customPdfDataUrl.startsWith('data:application/pdf')) {
+          try {
+            const parts = book.customPdfDataUrl.split(',');
+            const byteString = atob(parts[1]);
+            const ab = new ArrayBuffer(byteString.length);
+            const ia = new Uint8Array(ab);
+            for (let i = 0; i < byteString.length; i++) {
+              ia[i] = byteString.charCodeAt(i);
+            }
+            return new Blob([ab], { type: 'application/pdf' });
+          } catch (e) {
+            // Fall through to compiler
+          }
+        }
+
+        // Build a genuine, standards-compliant 2-page PDF 1.4 document with the book's content
+        const titleLines = wrapLines(book.title.toUpperCase(), 38);
+        const descLines = wrapLines(book.description, 68);
+        const excerptLines = wrapLines(book.excerpt || book.description, 68);
+        const highlights = book.highlights && book.highlights.length
+          ? book.highlights
+          : ['Chapter I — Core Thesis & Foundational Principles', 'Chapter II — Practical Execution & Systems Architecture'];
+
+        // Page 1 Content Stream (Cover & Executive Dossier)
+        let p1 = [];
+        p1.push('0.03 0.03 0.04 rg 0 0 612 792 re f'); // Deep obsidian background
+        p1.push('0.486 0.227 0.929 RG 1 w 54 718 504 0 re S'); // Electric purple top rule
+        p1.push('BT /F1 9 Tf 0.97 0.97 0.98 rg 54 730 Td (DROVEXRA DIGITAL KNOWLEDGE LIBRARY   //   ' + escapePdfText(book.edition || 'MONOGRAPH') + ') Tj ET');
+        p1.push('BT /F1 9 Tf 0.52 0.50 0.55 rg 54 696 Td (CATEGORY: ' + escapePdfText(book.category.toUpperCase()) + ') Tj ET');
+
+        let y = 620;
+        for (let i = 0; i < titleLines.length; i++) {
+          p1.push('BT /F2 26 Tf 1 1 1 rg 54 ' + y + ' Td (' + escapePdfText(titleLines[i]) + ') Tj ET');
+          y -= 34;
+        }
+        y -= 10;
+        p1.push('BT /F1 11 Tf 0.93 0.90 0.97 rg 54 ' + y + ' Td (By ' + escapePdfText(book.author) + ') Tj ET');
+        y -= 40;
+        p1.push('0.2 0.2 0.24 RG 0.5 w 54 ' + y + ' 504 0 re S');
+        y -= 32;
+
+        p1.push('BT /F1 10 Tf 0.486 0.227 0.929 rg 54 ' + y + ' Td (EDITORIAL SYNOPSIS) Tj ET');
+        y -= 22;
+        for (let i = 0; i < descLines.length; i++) {
+          p1.push('BT /F1 11 Tf 0.90 0.89 0.92 rg 54 ' + y + ' Td (' + escapePdfText(descLines[i]) + ') Tj ET');
+          y -= 18;
+        }
+
+        y -= 28;
+        p1.push('BT /F1 10 Tf 0.486 0.227 0.929 rg 54 ' + y + ' Td (STRUCTURAL OVERVIEW) Tj ET');
+        y -= 22;
+        for (let i = 0; i < highlights.length; i++) {
+          const hLines = wrapLines(highlights[i], 66);
+          for (let j = 0; j < hLines.length; j++) {
+            p1.push('BT /F1 10.5 Tf 0.85 0.84 0.88 rg 54 ' + y + ' Td (' + escapePdfText(hLines[j]) + ') Tj ET');
+            y -= 17;
+          }
+          y -= 6;
+        }
+
+        p1.push('0.2 0.2 0.24 RG 0.5 w 54 72 504 0 re S');
+        p1.push('BT /F1 8.5 Tf 0.52 0.50 0.55 rg 54 54 Td (DROVEXRA INDEPENDENT PUBLISHING HOUSE   |   OPEN ACCESS EDITION   |   PAGE 1 OF 2) Tj ET');
+        const stream1 = p1.join('\n');
+
+        // Page 2 Content Stream (Opening Monograph Chapter & Notes)
+        let p2 = [];
+        p2.push('0.98 0.976 0.988 rg 0 0 612 792 re f'); // Off-white archival reading page
+        p2.push('0.08 0.08 0.10 RG 0.75 w 54 726 504 0 re S');
+        p2.push('BT /F1 8.5 Tf 0.35 0.34 0.38 rg 54 738 Td (DROVEXRA EDITIONS   //   ' + escapePdfText(book.title.toUpperCase()) + ') Tj ET');
+
+        let y2 = 676;
+        p2.push('BT /F2 20 Tf 0.05 0.05 0.06 rg 54 ' + y2 + ' Td (I. Opening Monograph & Core Thesis) Tj ET');
+        y2 -= 32;
+
+        for (let i = 0; i < excerptLines.length; i++) {
+          p2.push('BT /F1 11 Tf 0.12 0.12 0.15 rg 54 ' + y2 + ' Td (' + escapePdfText(excerptLines[i]) + ') Tj ET');
+          y2 -= 19;
+        }
+
+        y2 -= 22;
+        const bodyParagraphs = [
+          'Knowledge compounds fastest when stripped of ornamental complexity. At Drovexra, each publication is structured as an actionable reference manual designed to bridge high-level strategic judgment and daily operational discipline.',
+          'Whether diagnosing commercial bottlenecks, designing autonomous software pipelines, or refining visual hierarchy, the governing principle remains constant: fewer elements, stronger composition, and verifiable real-world evidence.',
+          'Readers are encouraged to annotate, share, and apply the frameworks in this monograph freely. Valuable knowledge belongs in active circulation.'
+        ];
+
+        for (let p = 0; p < bodyParagraphs.length; p++) {
+          const lines = wrapLines(bodyParagraphs[p], 68);
+          for (let i = 0; i < lines.length; i++) {
+            p2.push('BT /F1 10.5 Tf 0.18 0.18 0.22 rg 54 ' + y2 + ' Td (' + escapePdfText(lines[i]) + ') Tj ET');
+            y2 -= 17;
+          }
+          y2 -= 14;
+        }
+
+        p2.push('0.75 0.74 0.78 RG 0.5 w 54 72 504 0 re S');
+        p2.push('BT /F1 8.5 Tf 0.40 0.39 0.44 rg 54 54 Td (PUBLISHED BY DROVEXRA   |   KNOWLEDGE THAT MOVES YOU FORWARD   |   PAGE 2 OF 2) Tj ET');
+        const stream2 = p2.join('\n');
+
+        const objects = [
+          '1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n',
+          '2 0 obj\n<< /Type /Pages /Kids [3 0 R 4 0 R] /Count 2 >>\nendobj\n',
+          '3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> /Contents 7 0 R >>\nendobj\n',
+          '4 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 5 0 R /F2 6 0 R >> >> /Contents 8 0 R >>\nendobj\n',
+          '5 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>\nendobj\n',
+          '6 0 obj\n<< /Type /Font /Subtype /Type1 /BaseFont /Times-Bold >>\nendobj\n',
+          '7 0 obj\n<< /Length ' + stream1.length + ' >>\nstream\n' + stream1 + '\nendstream\nendobj\n',
+          '8 0 obj\n<< /Length ' + stream2.length + ' >>\nstream\n' + stream2 + '\nendstream\nendobj\n'
+        ];
+
+        let pdf = '%PDF-1.4\n';
+        const offsets = [0];
+        for (let i = 0; i < objects.length; i++) {
+          offsets.push(pdf.length);
+          pdf += objects[i];
+        }
+        const xrefStart = pdf.length;
+        pdf += 'xref\n0 ' + (objects.length + 1) + '\n';
+        pdf += '0000000000 65535 f \n';
+        for (let i = 1; i < offsets.length; i++) {
+          pdf += String(offsets[i]).padStart(10, '0') + ' 00000 n \n';
+        }
+        pdf += 'trailer\n<< /Size ' + (objects.length + 1) + ' /Root 1 0 R >>\nstartxref\n' + xrefStart + '\n%%EOF';
+
+        return new Blob([pdf], { type: 'application/pdf' });
+      }
+
+      function triggerRealPdfDownload(book) {
+        if (!book) return;
+        if (!book.pdfAvailable) {
+          showToast('PDF Not Yet Uploaded: This volume is awaiting its PDF file from the publisher.', 'warning');
+          const unavailBox = document.getElementById('detail-unavailable-box');
+          if (unavailBox) {
+            unavailBox.classList.remove('hidden');
+            unavailBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
+          return;
+        }
+
+        const safeName = book.pdfFileName || (book.title.replace(/[^a-zA-Z0-9]+/g, '_') + '.pdf');
+
+        // If book comes from Supabase Storage (book-pdfs bucket), download its public Storage URL
+        if (book.pdfUrl) {
+          showToast('Fetching PDF from Supabase Storage (' + safeName + ')...', 'success');
+          fetch(book.pdfUrl, { method: 'GET', mode: 'cors' })
+            .then(function (resp) {
+              if (!resp.ok) throw new Error('HTTP ' + resp.status);
+              return resp.blob();
+            })
+            .then(function (pdfBlob) {
+              const blobUrl = URL.createObjectURL(pdfBlob);
+              const a = document.createElement('a');
+              a.href = blobUrl;
+              a.download = safeName;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              setTimeout(() => URL.revokeObjectURL(blobUrl), 12000);
+              showToast('Downloaded "' + book.title + '" from Supabase Storage', 'success');
+            })
+            .catch(function () {
+              // Direct browser download fallback if CORS or content-disposition requires direct navigation
+              const a = document.createElement('a');
+              a.href = book.pdfUrl;
+              a.download = safeName;
+              a.target = '_blank';
+              a.rel = 'noopener noreferrer';
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+            });
+          return;
+        }
+
+        const blob = createGenuinePdfBlob(book);
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = safeName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(url), 10000);
+
+        showToast('Downloading "' + book.title + '" (' + safeName + ')', 'success');
+      }
+
+      // -------------------------------------------------------------------
+      // 3. TOAST NOTIFICATION HELPER (Sandbox-safe, replaces alert/confirm)
+      // -------------------------------------------------------------------
+      function showToast(message, type) {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+        const toast = document.createElement('div');
+        const borderClass = type === 'warning' ? 'border-amber-500/40' : 'border-electric/50';
+        const dotClass = type === 'warning' ? 'bg-amber-400' : 'bg-electric';
+        toast.className = 'pointer-events-auto flex items-center gap-3 px-4 py-3 rounded bg-charcoal/95 border ' + borderClass + ' text-xs text-offwhite shadow-2xl backdrop-blur-md transition-opacity duration-300';
+        toast.innerHTML = '<span class="w-2 h-2 rounded-full shrink-0 ' + dotClass + '"></span><span>' + message + '</span>';
+        container.appendChild(toast);
+        setTimeout(() => {
+          toast.style.opacity = '0';
+          setTimeout(() => {
+            if (toast.parentNode) toast.parentNode.removeChild(toast);
+          }, 300);
+        }, 3600);
+      }
+
+      // -------------------------------------------------------------------
+      // 4. THREEUI COMPONENT 1: PredictiveArcCanvas (Hero Atmosphere)
+      //    Props: mode="dark" speed={1.00} hue={0} saturation={1.00} brightness={1.00}
+      // -------------------------------------------------------------------
+      function initPredictiveArcCanvas() {
+        const canvas = document.getElementById('predictive-arc-canvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        const speed = parseFloat(canvas.dataset.speed || '1.00');
+        let width = 0;
+        let height = 0;
+        let dpr = Math.min(window.devicePixelRatio || 1, 2);
+        let pointerX = 0.5;
+        let pointerY = 0.5;
+        let smoothX = 0.5;
+        let smoothY = 0.5;
+        const smoothing = 0.035;
+        let time = 0;
+        let animId = null;
+
+        function resize() {
+          const rect = canvas.parentElement.getBoundingClientRect();
+          width = Math.max(rect.width, 300);
+          height = Math.max(rect.height, 400);
+          dpr = Math.min(window.devicePixelRatio || 1, 2);
+          canvas.width = width * dpr;
+          canvas.height = height * dpr;
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+
+        resize();
+        window.addEventListener('resize', resize);
+
+        window.addEventListener('pointermove', function (e) {
+          const rect = canvas.getBoundingClientRect();
+          if (rect.height > 0) {
+            pointerX = (e.clientX - rect.left) / rect.width;
+            pointerY = (e.clientY - rect.top) / rect.height;
+          }
+        });
+
+        function renderFrame() {
+          smoothX += (pointerX - smoothX) * smoothing;
+          smoothY += (pointerY - smoothY) * smoothing;
+          if (!prefersReducedMotion) {
+            time += 0.008 * speed;
+          }
+
+          ctx.clearRect(0, 0, width, height);
+
+          // Subtle atmospheric horizon glow
+          const cx = width * (0.62 + (smoothX - 0.5) * 0.08);
+          const cy = height * (0.92 + (smoothY - 0.5) * 0.05);
+          const radius = Math.max(width, height) * 0.72;
+
+          const grad = ctx.createRadialGradient(cx, cy, radius * 0.12, cx, cy, radius * 1.05);
+          grad.addColorStop(0, 'rgba(8, 8, 8, 0)');
+          grad.addColorStop(0.58, 'rgba(109, 40, 217, 0.09)');
+          grad.addColorStop(0.74, 'rgba(124, 58, 237, 0.18)');
+          grad.addColorStop(0.79, 'rgba(237, 231, 247, 0.12)');
+          grad.addColorStop(0.92, 'rgba(8, 8, 8, 0)');
+
+          ctx.fillStyle = grad;
+          ctx.fillRect(0, 0, width, height);
+
+          // Predictive Arc Dot-Matrix Ribbon Field
+          const cols = Math.floor(width / 26);
+          const rows = Math.floor(height / 26);
+          for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+              const x = (c + 0.5) * 26;
+              const y = (r + 0.5) * 26;
+              const dx = x - cx;
+              const dy = y - cy;
+              const dist = Math.sqrt(dx * dx + dy * dy);
+              const arcBand = Math.abs(dist - radius * 0.76);
+
+              if (arcBand < 160) {
+                const wave = Math.sin(c * 0.18 + time * 1.6) * Math.cos(r * 0.15 - time * 1.1);
+                const intensity = Math.max(0, 1 - arcBand / 160) * (0.45 + 0.55 * wave);
+                if (intensity > 0.06) {
+                  const isCrest = arcBand < 22;
+                  ctx.fillStyle = isCrest
+                    ? 'rgba(237, 231, 247, ' + Math.min(0.65, intensity * 0.85).toFixed(3) + ')'
+                    : 'rgba(124, 58, 237, ' + Math.min(0.42, intensity * 0.55).toFixed(3) + ')';
+                  const dotSize = isCrest ? 1.8 : 1.25;
+                  ctx.beginPath();
+                  ctx.arc(x, y, dotSize, 0, Math.PI * 2);
+                  ctx.fill();
+                }
+              }
+            }
+          }
+
+          // Primary Predictive Orbital Arc Curve
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(cx, cy, radius * 0.76, Math.PI * 1.05, Math.PI * 1.92);
+          ctx.strokeStyle = 'rgba(237, 231, 247, 0.22)';
+          ctx.lineWidth = 1.1;
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.arc(cx, cy, radius * 0.79, Math.PI * 1.12, Math.PI * 1.78);
+          ctx.strokeStyle = 'rgba(124, 58, 237, 0.28)';
+          ctx.lineWidth = 0.8;
+          ctx.stroke();
+          ctx.restore();
+
+          if (!prefersReducedMotion) {
+            animId = requestAnimationFrame(renderFrame);
+          }
+        }
+
+        if (animId) cancelAnimationFrame(animId);
+        renderFrame();
+      }
+
+      // -------------------------------------------------------------------
+      // 5. THREEUI COMPONENT 3: ShaderButtons (Star Portal Variant)
+      //    Props: mode="dark" hue={0} saturation={1.00} brightness={1.00}
+      // -------------------------------------------------------------------
+      function attachStarPortalShaderButtons() {
+        const canvases = document.querySelectorAll('canvas.star-portal-canvas');
+        canvases.forEach(function (canvas) {
+          if (canvas.dataset.initialized === 'true') return;
+          canvas.dataset.initialized = 'true';
+
+          const btn = canvas.parentElement;
+          const ctx = canvas.getContext('2d');
+          if (!ctx || !btn) return;
+
+          let hovered = false;
+          let angle = Math.random() * Math.PI * 2;
+
+          btn.addEventListener('pointerenter', function () { hovered = true; });
+          btn.addEventListener('pointerleave', function () { hovered = false; });
+
+          function drawPortal() {
+            const w = (canvas.width = btn.offsetWidth || 150);
+            const h = (canvas.height = btn.offsetHeight || 42);
+            ctx.clearRect(0, 0, w, h);
+
+            if (!prefersReducedMotion) {
+              angle += hovered ? 0.045 : 0.015;
+            }
+
+            const gx = w * 0.5 + Math.cos(angle) * (w * 0.36);
+            const gy = h * 0.5 + Math.sin(angle) * (h * 0.36);
+            const rad = Math.max(w, h) * (hovered ? 0.85 : 0.65);
+
+            const g = ctx.createRadialGradient(gx, gy, 2, w * 0.5, h * 0.5, rad);
+            g.addColorStop(0, hovered ? 'rgba(237, 231, 247, 0.32)' : 'rgba(124, 58, 237, 0.18)');
+            g.addColorStop(0.45, hovered ? 'rgba(124, 58, 237, 0.26)' : 'rgba(109, 40, 217, 0.10)');
+            g.addColorStop(1, 'rgba(11, 10, 14, 0)');
+
+            ctx.fillStyle = g;
+            ctx.fillRect(0, 0, w, h);
+
+            // Subtle star-portal micro-sparks
+            for (let i = 0; i < 6; i++) {
+              const sx = (w * ((i * 0.17 + angle * 0.09) % 1));
+              const sy = h * (0.25 + 0.5 * Math.sin(angle + i * 1.7));
+              ctx.fillStyle = hovered ? 'rgba(237, 231, 247, 0.55)' : 'rgba(237, 231, 247, 0.22)';
+              ctx.fillRect(sx, sy, 1.3, 1.3);
+            }
+
+            if (!prefersReducedMotion) {
+              requestAnimationFrame(drawPortal);
+            }
+          }
+
+          drawPortal();
+        });
+      }
+
+      // -------------------------------------------------------------------
+      // 6. THREEUI COMPONENT 2: ThreeDPaper (variant="original")
+      //    Floating 3D Book Cover in the Book-View Experience using Three.js
+      // -------------------------------------------------------------------
+      let paperScene = null;
+      let paperCamera = null;
+      let paperRenderer = null;
+      let paperGroup = null;
+      let paperFrontMesh = null;
+      let paperGeometry = null;
+      let paperPointLight = null;
+      let paperAnimId = null;
+      let currentCoverTexture = null;
+
+      function initThreeDPaperStage() {
+        const container = document.getElementById('threed-paper-stage');
+        if (!container || typeof THREE === 'undefined') return;
+        if (paperRenderer) return; // Already initialized
+
+        const width = container.clientWidth || 520;
+        const height = container.clientHeight || 520;
+
+        paperScene = new THREE.Scene();
+        paperCamera = new THREE.PerspectiveCamera(34, width / height, 0.1, 100);
+        paperCamera.position.set(0, 0, 7.6);
+
+        paperRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+        paperRenderer.setSize(width, height);
+        paperRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        paperRenderer.domElement.style.position = 'absolute';
+        paperRenderer.domElement.style.inset = '0';
+        paperRenderer.domElement.style.width = '100%';
+        paperRenderer.domElement.style.height = '100%';
+        container.appendChild(paperRenderer.domElement);
+
+        // Lighting (ThreeDPaper Original Variant: translucent/specular sheen + hover spotlight)
+        const ambientLight = new THREE.AmbientLight(0xf8f7fa, 0.78);
+        paperScene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.65);
+        dirLight.position.set(3.5, 5.0, 6.0);
+        paperScene.add(dirLight);
+
+        const rimLight = new THREE.PointLight(0x7c3aed, 1.15, 14);
+        rimLight.position.set(-4.0, -2.5, 3.2);
+        paperScene.add(rimLight);
+
+        paperPointLight = new THREE.PointLight(0xede7f7, 1.35, 12);
+        paperPointLight.position.set(0, 0, 4.5);
+        paperScene.add(paperPointLight);
+
+        // High-subdivision curved paper geometry (Original variant bent certificate/cover)
+        paperGroup = new THREE.Group();
+        paperScene.add(paperGroup);
+
+        paperGeometry = new THREE.PlaneGeometry(3.15, 4.2, 40, 56);
+        const pos = paperGeometry.attributes.position;
+        const baseZ = new Float32Array(pos.count);
+
+        for (let i = 0; i < pos.count; i++) {
+          const x = pos.getX(i);
+          const y = pos.getY(i);
+          // Signature ThreeDPaper suspended glass/paper curvature
+          const bendZ = Math.sin(x * 0.75) * 0.14 + Math.cos(y * 0.55) * 0.08 + (x * y) * 0.025;
+          pos.setZ(i, bendZ);
+          baseZ[i] = bendZ;
+        }
+        paperGeometry.computeVertexNormals();
+
+        const frontMaterial = new THREE.MeshStandardMaterial({
+          color: 0xffffff,
+          roughness: 0.28,
+          metalness: 0.12,
+          side: THREE.DoubleSide
+        });
+
+        paperFrontMesh = new THREE.Mesh(paperGeometry, frontMaterial);
+        paperGroup.add(paperFrontMesh);
+
+        // Subtle floating shadow plane behind the book cover
+        const haloGeo = new THREE.PlaneGeometry(3.5, 4.55);
+        const haloMat = new THREE.MeshBasicMaterial({
+          color: 0x7c3aed,
+          transparent: true,
+          opacity: 0.07,
+          side: THREE.DoubleSide
+        });
+        const haloMesh = new THREE.Mesh(haloGeo, haloMat);
+        haloMesh.position.z = -0.28;
+        paperGroup.add(haloMesh);
+
+        // Interaction state: Hover light + pointer parallax + grab-and-drag rotation + click-to-download
+        let isDragging = false;
+        let pointerDownX = 0;
+        let pointerDownY = 0;
+        let prevX = 0;
+        let prevY = 0;
+        let targetRotX = 0.04;
+        let targetRotY = -0.14;
+        let currentRotX = 0.04;
+        let currentRotY = -0.14;
+        let hoverNdcX = 0;
+        let hoverNdcY = 0;
+        let clockStart = performance.now();
+
+        container.addEventListener('pointerdown', function (e) {
+          isDragging = true;
+          pointerDownX = e.clientX;
+          pointerDownY = e.clientY;
+          prevX = e.clientX;
+          prevY = e.clientY;
+          container.classList.add('is-dragging');
+        });
+
+        window.addEventListener('pointerup', function (e) {
+          if (!isDragging) return;
+          isDragging = false;
+          container.classList.remove('is-dragging');
+          const movedDist = Math.hypot(e.clientX - pointerDownX, e.clientY - pointerDownY);
+          // If click without drag (< 6px movement), trigger the PDF download!
+          if (movedDist < 6 && e.target && container.contains(e.target)) {
+            // Subtle click pulse
+            paperGroup.scale.set(0.96, 0.96, 0.96);
+            setTimeout(() => {
+              if (paperGroup) paperGroup.scale.set(1, 1, 1);
+            }, 180);
+            triggerRealPdfDownload(currentBook);
+          }
+        });
+
+        container.addEventListener('pointermove', function (e) {
+          const rect = container.getBoundingClientRect();
+          hoverNdcX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+          hoverNdcY = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
+
+          paperPointLight.position.x = hoverNdcX * 3.2;
+          paperPointLight.position.y = hoverNdcY * 3.2;
+
+          if (isDragging) {
+            const dx = e.clientX - prevX;
+            const dy = e.clientY - prevY;
+            targetRotY += dx * 0.0085;
+            targetRotX += dy * 0.0065;
+            targetRotX = Math.max(-0.65, Math.min(0.65, targetRotX));
+            targetRotY = Math.max(-0.95, Math.min(0.95, targetRotY));
+            prevX = e.clientX;
+            prevY = e.clientY;
+          } else {
+            targetRotY = -0.12 + hoverNdcX * 0.24;
+            targetRotX = 0.04 - hoverNdcY * 0.18;
+          }
+        });
+
+        container.addEventListener('pointerleave', function () {
+          if (!isDragging) {
+            targetRotX = 0.04;
+            targetRotY = -0.14;
+          }
+        });
+
+        // Keyboard accessibility on the 3D cover stage
+        container.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            triggerRealPdfDownload(currentBook);
+          }
+        });
+
+        window.addEventListener('resize', function () {
+          if (!paperRenderer || !container.offsetParent) return;
+          const w = container.clientWidth || 500;
+          const h = container.clientHeight || 500;
+          paperCamera.aspect = w / h;
+          paperCamera.updateProjectionMatrix();
+          paperRenderer.setSize(w, h);
+        });
+
+        function animatePaper(now) {
+          paperAnimId = requestAnimationFrame(animatePaper);
+          const elapsed = (now - clockStart) * 0.001;
+
+          // Inertial settling
+          currentRotX += (targetRotX - currentRotX) * 0.08;
+          currentRotY += (targetRotY - currentRotY) * 0.08;
+
+          paperGroup.rotation.x = currentRotX;
+          paperGroup.rotation.y = currentRotY;
+
+          if (!prefersReducedMotion) {
+            // Gentle floating movement & living paper wave
+            paperGroup.position.y = Math.sin(elapsed * 1.35) * 0.09;
+            paperGroup.rotation.z = Math.cos(elapsed * 0.9) * 0.015;
+
+            for (let i = 0; i < pos.count; i++) {
+              const x = pos.getX(i);
+              const y = pos.getY(i);
+              const wave = Math.sin(x * 1.1 + elapsed * 1.6) * 0.035 + Math.cos(y * 0.9 + elapsed * 1.2) * 0.025;
+              pos.setZ(i, baseZ[i] + wave);
+            }
+            pos.needsUpdate = true;
+            paperGeometry.computeVertexNormals();
+          }
+
+          paperRenderer.render(paperScene, paperCamera);
+        }
+
+        if (paperAnimId) cancelAnimationFrame(paperAnimId);
+        requestAnimationFrame(animatePaper);
+      }
+
+      function updateThreeDPaperCover(book) {
+        if (!book) return;
+        initThreeDPaperStage();
+        if (!paperFrontMesh) return;
+
+        const container = document.getElementById('threed-paper-stage');
+        if (container && paperRenderer && paperCamera) {
+          const w = container.clientWidth || 500;
+          const h = container.clientHeight || 500;
+          paperCamera.aspect = w / h;
+          paperCamera.updateProjectionMatrix();
+          paperRenderer.setSize(w, h);
+        }
+
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = function () {
+          // Composite onto high-DPI canvas texture for crisp WebGL rendering
+          const texCanvas = document.createElement('canvas');
+          texCanvas.width = 768;
+          texCanvas.height = 1024;
+          const tctx = texCanvas.getContext('2d');
+          tctx.drawImage(img, 0, 0, 768, 1024);
+
+          if (currentCoverTexture) currentCoverTexture.dispose();
+          currentCoverTexture = new THREE.CanvasTexture(texCanvas);
+          currentCoverTexture.anisotropy = 4;
+          currentCoverTexture.needsUpdate = true;
+
+          paperFrontMesh.material.map = currentCoverTexture;
+          paperFrontMesh.material.needsUpdate = true;
+        };
+        img.src = book.coverImage;
+      }
+
+      // -------------------------------------------------------------------
+      // 7. RENDER LIBRARY GRID & HANDLE VIEW TRANSITIONS
+      // -------------------------------------------------------------------
+      function renderBooksGrid() {
+        const grid = document.getElementById('books-grid');
+        const emptyState = document.getElementById('library-empty-state');
+        const heroStat = document.getElementById('hero-catalog-stat');
+        if (!grid) return;
+
+        if (heroStat) {
+          if (booksCatalog.length === 0) {
+            heroStat.textContent = 'DIGITAL LIBRARY · PDF EDITIONS COMING SOON';
+          } else {
+            const availCount = booksCatalog.filter(b => b.pdfAvailable).length;
+            heroStat.textContent = String(booksCatalog.length).padStart(2, '0') + ' CURATED EDITIONS · ' + availCount + ' FREE PDFS READY';
+          }
+        }
+
+        grid.innerHTML = '';
+
+        // When no PDFs exist in the catalog yet, display the dedicated "Coming Soon" PDF block
+        if (booksCatalog.length === 0) {
+          emptyState.classList.add('hidden');
+          const comingSoonCard = document.createElement('article');
+          comingSoonCard.className = 'book-editorial-card rounded p-5 sm:p-6 flex flex-col justify-between group';
+          comingSoonCard.innerHTML = `
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-4">
+                <span class="text-[10px] editorial-mono uppercase text-muted">DROVEXRA ARCHIVE · PDF BLOCK</span>
+                <span class="text-[10px] editorial-mono uppercase text-lavender bg-electric/15 border border-electric/30 px-2 py-0.5 rounded">Coming Soon</span>
+              </div>
+              <div class="book-cover-frame rounded-sm mb-6">
+                <img src="${COMING_SOON_COVER_SVG}" alt="PDF Edition Coming Soon" />
+              </div>
+              <div class="mb-3">
+                <h3 class="editorial-serif text-2xl sm:text-[26px] font-normal text-purewhite leading-snug">
+                  Coming Soon
+                </h3>
+                <p class="text-[11px] editorial-mono uppercase text-electric mt-1">
+                  cpming soon · Drovexra Digital Editions
+                </p>
+              </div>
+              <p class="text-xs sm:text-sm text-offwhite/75 font-light leading-relaxed mb-6">
+                Curated digital books, business growth playbooks, and practical PDF resources are currently being prepared for free public release.
+              </p>
+            </div>
+            <div class="pt-4 border-t border-white/[0.06] flex items-center justify-between gap-4">
+              <div class="flex flex-col">
+                <span class="text-[10px] editorial-mono uppercase text-offwhite/80">PDF FORMAT</span>
+                <span class="text-[10px] editorial-mono text-muted">cpming soon</span>
+              </div>
+              <span class="px-4 py-2 rounded-full border border-white/10 bg-charcoal text-[11px] editorial-mono uppercase text-lavender">
+                Coming Soon
+              </span>
+            </div>
+          `;
+          grid.appendChild(comingSoonCard);
+          return;
+        }
+
+        const filtered = booksCatalog.filter(function (b) {
+          const matchesCat = activeCategory === 'all' || b.category === activeCategory;
+          const q = searchQuery.trim().toLowerCase();
+          const matchesSearch = !q ||
+            b.title.toLowerCase().includes(q) ||
+            b.author.toLowerCase().includes(q) ||
+            b.description.toLowerCase().includes(q) ||
+            b.category.toLowerCase().includes(q);
+          return matchesCat && matchesSearch;
+        });
+
+        if (filtered.length === 0) {
+          emptyState.classList.remove('hidden');
+          return;
+        }
+        emptyState.classList.add('hidden');
+
+        filtered.forEach(function (book, idx) {
+          const card = document.createElement('article');
+          card.className = 'book-editorial-card rounded p-5 sm:p-6 flex flex-col justify-between group';
+
+          const availabilityPill = book.pdfAvailable
+            ? '<span class="text-[10px] editorial-mono uppercase text-lavender bg-electric/15 border border-electric/30 px-2 py-0.5 rounded">Free PDF</span>'
+            : '<span class="text-[10px] editorial-mono uppercase text-muted bg-white/[0.04] border border-white/10 px-2 py-0.5 rounded">Awaiting PDF</span>';
+
+          card.innerHTML = `
+            <div>
+              <!-- Top Metadata Row -->
+              <div class="flex items-center justify-between gap-2 mb-4">
+                <span class="text-[10px] editorial-mono uppercase text-muted">${book.edition || ('EDITION 0' + (idx + 1))} · ${book.category}</span>
+                ${availabilityPill}
+              </div>
+
+              <!-- Book Cover Image -->
+              <div class="book-cover-frame rounded-sm mb-6 cursor-pointer" data-open-book="${book.id}">
+                <img src="${book.coverImage}" alt="Cover of ${book.title}" loading="lazy" />
+              </div>
+
+              <!-- Book Title & Author -->
+              <div class="mb-3">
+                <h3 class="editorial-serif text-2xl sm:text-[26px] font-normal text-purewhite leading-snug group-hover:text-lavender transition-colors cursor-pointer" data-open-book="${book.id}">
+                  ${book.title}
+                </h3>
+                <p class="text-[11px] editorial-mono uppercase text-muted mt-1">
+                  ${book.author}
+                </p>
+              </div>
+
+              <!-- Short Editorial Description -->
+              <p class="text-xs sm:text-sm text-offwhite/75 font-light leading-relaxed mb-6">
+                ${book.description}
+              </p>
+            </div>
+
+            <!-- Footer Row: Format Label + ThreeUI ShaderButtons Get PDF -->
+            <div class="pt-4 border-t border-white/[0.06] flex items-center justify-between gap-4">
+              <div class="flex flex-col">
+                <span class="text-[10px] editorial-mono uppercase text-offwhite/80">PDF EDITION</span>
+                <span class="text-[10px] editorial-mono text-muted">${book.pdfAvailable ? (book.pages + ' Pages · Free') : 'Upload Pending'}</span>
+              </div>
+
+              <!-- ThreeUI Component: <ShaderButtons mode="dark" hue={0} saturation={1.00} brightness={1.00} /> -->
+              <button
+                type="button"
+                data-open-book="${book.id}"
+                data-threeui-component="ShaderButtons"
+                data-variant="star-portal"
+                data-mode="dark"
+                data-hue="0"
+                data-saturation="1.00"
+                data-brightness="1.00"
+                class="threeui-shader-btn text-xs py-2 px-4"
+              >
+                <canvas class="star-portal-canvas"></canvas>
+                <span>Get PDF</span>
+                <svg class="w-3.5 h-3.5 text-lavender" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m0 0l-5-5m5 5l-5 5" />
+                </svg>
+              </button>
+            </div>
+          `;
+
+          grid.appendChild(card);
+        });
+
+        // Attach click listeners to all [data-open-book] triggers
+        grid.querySelectorAll('[data-open-book]').forEach(function (el) {
+          el.addEventListener('click', function () {
+            const bookId = el.getAttribute('data-open-book');
+            openBookDetailView(bookId);
+          });
+        });
+
+        attachStarPortalShaderButtons();
+      }
+
+      function openBookDetailView(bookId) {
+        const book = booksCatalog.find(b => b.id === bookId);
+        if (!book) return;
+        currentBook = book;
+        lastScrollY = window.scrollY;
+
+        // Populate Book Detail View
+        document.getElementById('detail-edition-badge').textContent = 'DROVEXRA ARCHIVE // ' + (book.edition || 'MONOGRAPH');
+        document.getElementById('detail-category').textContent = book.category;
+        document.getElementById('detail-title').textContent = book.title;
+        document.getElementById('detail-author').textContent = 'By ' + book.author;
+        document.getElementById('detail-description').textContent = book.description;
+        document.getElementById('detail-spec-pages').textContent = (book.pages || 48) + ' Pages';
+        document.getElementById('detail-spec-source').textContent = book.pdfAvailable ? 'Owner Verified PDF' : 'Awaiting Upload';
+
+        const availBadge = document.getElementById('detail-availability-badge');
+        const unavailBox = document.getElementById('detail-unavailable-box');
+        const downloadBtnLabel = document.getElementById('detail-download-btn-label');
+        const stagePrompt = document.getElementById('stage-click-prompt');
+        const stageDot = document.getElementById('stage-status-dot');
+
+        if (book.pdfAvailable) {
+          availBadge.textContent = 'Free Download Available';
+          availBadge.className = 'px-2.5 py-0.5 text-[11px] editorial-mono uppercase rounded bg-electric/15 text-lavender border border-electric/30';
+          unavailBox.classList.add('hidden');
+          downloadBtnLabel.textContent = 'Download Free PDF';
+          stagePrompt.textContent = 'Click floating cover to download PDF';
+          stageDot.className = 'w-1.5 h-1.5 rounded-full bg-electric';
+        } else {
+          availBadge.textContent = 'PDF Not Yet Uploaded';
+          availBadge.className = 'px-2.5 py-0.5 text-[11px] editorial-mono uppercase rounded bg-white/5 text-muted border border-white/15';
+          unavailBox.classList.remove('hidden');
+          downloadBtnLabel.textContent = 'PDF Unavailable (Pending Upload)';
+          stagePrompt.textContent = 'PDF pending owner upload · Drag to inspect cover';
+          stageDot.className = 'w-1.5 h-1.5 rounded-full bg-muted';
+        }
+
+        // Highlights
+        const highlightsList = document.getElementById('detail-highlights');
+        highlightsList.innerHTML = '';
+        const items = book.highlights && book.highlights.length
+          ? book.highlights
+          : ['Chapter I — Core Thesis & Strategic Context', 'Chapter II — Practical Systems & Implementation'];
+        items.forEach(function (item) {
+          const li = document.createElement('li');
+          li.className = 'flex items-start gap-2.5';
+          li.innerHTML = '<span class="text-electric mt-1">·</span><span>' + item + '</span>';
+          highlightsList.appendChild(li);
+        });
+
+        // Switch view
+        document.getElementById('home-view').classList.add('view-hidden');
+        document.getElementById('book-detail-view').classList.remove('view-hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        // Render 3D cover inside ThreeDPaper
+        setTimeout(function () {
+          updateThreeDPaperCover(book);
+        }, 40);
+      }
+
+      function closeBookDetailView() {
+        document.getElementById('book-detail-view').classList.add('view-hidden');
+        document.getElementById('home-view').classList.remove('view-hidden');
+        window.scrollTo({ top: lastScrollY, behavior: 'smooth' });
+      }
+
+      // -------------------------------------------------------------------
+      // 8. OWNER STUDIO (PDF & BOOK MANAGEMENT)
+      // -------------------------------------------------------------------
+      function renderOwnerCatalogList() {
+        const listEl = document.getElementById('owner-catalog-list');
+        if (!listEl) return;
+        listEl.innerHTML = '';
+
+        booksCatalog.forEach(function (book) {
+          const row = document.createElement('div');
+          row.className = 'p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3';
+          const statusBadge = book.pdfAvailable
+            ? '<span class="text-[10px] editorial-mono uppercase text-lavender bg-electric/20 px-2 py-0.5 rounded">PDF Ready</span>'
+            : '<span class="text-[10px] editorial-mono uppercase text-amber-300 bg-amber-500/15 px-2 py-0.5 rounded">No PDF Uploaded</span>';
+
+          row.innerHTML = `
+            <div class="flex items-center gap-3">
+              <img src="${book.coverImage}" alt="" class="w-9 h-12 object-cover rounded-sm border border-white/10 shrink-0" />
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-medium text-purewhite">${book.title}</span>
+                  ${statusBadge}
+                </div>
+                <p class="text-[11px] text-muted">${book.author} · ${book.category}</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <button type="button" data-edit-book="${book.id}" class="px-2.5 py-1 text-[11px] editorial-mono text-offwhite bg-white/5 hover:bg-white/10 rounded border border-white/10">
+                ${book.pdfAvailable ? 'Edit / Replace PDF' : 'Upload PDF'}
+              </button>
+              <button type="button" data-toggle-pdf="${book.id}" class="px-2.5 py-1 text-[11px] editorial-mono text-muted hover:text-lavender rounded border border-white/10">
+                ${book.pdfAvailable ? 'Mark Unavailable' : 'Attach Sample PDF'}
+              </button>
+            </div>
+          `;
+          listEl.appendChild(row);
+        });
+
+        listEl.querySelectorAll('[data-edit-book]').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            const book = booksCatalog.find(b => b.id === btn.getAttribute('data-edit-book'));
+            if (!book) return;
+            document.getElementById('owner-form-heading').textContent = 'Editing Volume: ' + book.title;
+            document.getElementById('book-id-input').value = book.id;
+            document.getElementById('book-title-input').value = book.title;
+            document.getElementById('book-author-input').value = book.author;
+            document.getElementById('book-category-input').value = book.category;
+            document.getElementById('book-desc-input').value = book.description;
+            document.getElementById('book-generate-pdf-checkbox').checked = true;
+            document.getElementById('book-title-input').focus();
+          });
+        });
+
+        listEl.querySelectorAll('[data-toggle-pdf]').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            const book = booksCatalog.find(b => b.id === btn.getAttribute('data-toggle-pdf'));
+            if (!book) return;
+            book.pdfAvailable = !book.pdfAvailable;
+            book.fileSize = book.pdfAvailable ? '2.4 MB' : 'Pending Upload';
+            saveCatalog(booksCatalog);
+            renderBooksGrid();
+            renderOwnerCatalogList();
+            if (currentBook && currentBook.id === book.id && !document.getElementById('book-detail-view').classList.contains('view-hidden')) {
+              openBookDetailView(book.id);
+            }
+            showToast(book.pdfAvailable ? ('PDF enabled for "' + book.title + '"') : ('PDF marked unavailable for "' + book.title + '"'), 'success');
+          });
+        });
+      }
+
+      function resetOwnerForm() {
+        document.getElementById('owner-form-heading').textContent = 'Add New Volume or Update Existing';
+        document.getElementById('book-id-input').value = '';
+        document.getElementById('owner-book-form').reset();
+      }
+
+      function openCuratorModal(preselectBook) {
+        renderOwnerCatalogList();
+        if (preselectBook) {
+          document.getElementById('owner-form-heading').textContent = 'Upload PDF for: ' + preselectBook.title;
+          document.getElementById('book-id-input').value = preselectBook.id;
+          document.getElementById('book-title-input').value = preselectBook.title;
+          document.getElementById('book-author-input').value = preselectBook.author;
+          document.getElementById('book-category-input').value = preselectBook.category;
+          document.getElementById('book-desc-input').value = preselectBook.description;
+          document.getElementById('book-generate-pdf-checkbox').checked = true;
+        }
+        document.getElementById('curator-modal').classList.remove('hidden');
+      }
+
+      function closeCuratorModal() {
+        document.getElementById('curator-modal').classList.add('hidden');
+      }
+
+      // -------------------------------------------------------------------
+      // 9. WIRE ALL CONTROLS & EVENT LISTENERS
+      // -------------------------------------------------------------------
+      function wireControls() {
+        // Navigation links
+        const goHomeAndScroll = function (targetId) {
+          if (!document.getElementById('book-detail-view').classList.contains('view-hidden')) {
+            document.getElementById('book-detail-view').classList.add('view-hidden');
+            document.getElementById('home-view').classList.remove('view-hidden');
+          }
+          document.getElementById('mobile-nav-drawer').classList.add('hidden');
+          const el = document.getElementById(targetId);
+          if (el) {
+            setTimeout(() => el.scrollIntoView({ behavior: 'smooth' }), 30);
+          }
+        };
+
+        document.getElementById('nav-brand-link').addEventListener('click', function (e) {
+          e.preventDefault();
+          goHomeAndScroll('hero-section');
+        });
+        document.getElementById('nav-library-link').addEventListener('click', function (e) {
+          e.preventDefault();
+          goHomeAndScroll('library-section');
+        });
+        document.getElementById('nav-about-link').addEventListener('click', function (e) {
+          e.preventDefault();
+          goHomeAndScroll('about-section');
+        });
+        document.getElementById('drawer-library-link').addEventListener('click', function (e) {
+          e.preventDefault();
+          goHomeAndScroll('library-section');
+        });
+        document.getElementById('drawer-about-link').addEventListener('click', function (e) {
+          e.preventDefault();
+          goHomeAndScroll('about-section');
+        });
+        document.getElementById('footer-library-link').addEventListener('click', function (e) {
+          e.preventDefault();
+          goHomeAndScroll('library-section');
+        });
+        document.getElementById('footer-about-link').addEventListener('click', function (e) {
+          e.preventDefault();
+          goHomeAndScroll('about-section');
+        });
+
+        // Mobile / Quick Menu Drawer
+        document.getElementById('mobile-menu-trigger').addEventListener('click', function () {
+          const drawer = document.getElementById('mobile-nav-drawer');
+          const isHidden = drawer.classList.toggle('hidden');
+          this.setAttribute('aria-expanded', String(!isHidden));
+        });
+
+        // Hero Explore Button
+        document.getElementById('hero-explore-btn').addEventListener('click', function () {
+          goHomeAndScroll('library-section');
+        });
+
+        // Search & Category Filters
+        document.getElementById('library-search-input').addEventListener('input', function (e) {
+          searchQuery = e.target.value || '';
+          renderBooksGrid();
+        });
+
+        document.querySelectorAll('#category-filter-bar .category-pill').forEach(function (pill) {
+          pill.addEventListener('click', function () {
+            activeCategory = pill.getAttribute('data-category') || 'all';
+            document.querySelectorAll('#category-filter-bar .category-pill').forEach(function (p) {
+              p.className = 'category-pill px-3.5 py-1.5 rounded-full text-xs editorial-mono uppercase transition-colors bg-charcoal text-muted hover:text-offwhite border border-white/[0.07]';
+            });
+            pill.className = 'category-pill px-3.5 py-1.5 rounded-full text-xs editorial-mono uppercase transition-colors bg-purewhite text-obsidian font-medium';
+            renderBooksGrid();
+          });
+        });
+
+        document.getElementById('reset-filters-btn').addEventListener('click', function () {
+          activeCategory = 'all';
+          searchQuery = '';
+          document.getElementById('library-search-input').value = '';
+          const firstPill = document.querySelector('#category-filter-bar .category-pill[data-category="all"]');
+          if (firstPill) firstPill.click();
+          else renderBooksGrid();
+        });
+
+        // Book Detail View buttons
+        document.getElementById('back-to-library-btn').addEventListener('click', closeBookDetailView);
+        document.getElementById('detail-download-btn').addEventListener('click', function () {
+          triggerRealPdfDownload(currentBook);
+        });
+
+
+        // Excerpt & Contact Info Modal
+        const infoModal = document.getElementById('info-modal');
+        document.getElementById('detail-excerpt-btn').addEventListener('click', function () {
+          if (!currentBook) return;
+          document.getElementById('info-modal-kicker').textContent = (currentBook.edition || 'EDITION') + ' · OPENING EXCERPT';
+          document.getElementById('info-modal-title').textContent = currentBook.title;
+          document.getElementById('info-modal-body').innerHTML = `
+            <blockquote class="editorial-serif text-xl sm:text-2xl text-purewhite border-l-2 border-electric pl-4 italic">
+              “${currentBook.excerpt || currentBook.description}”
+            </blockquote>
+            <p>
+              This volume is part of the Drovexra Open Knowledge Library. Click <strong>Download Free PDF</strong> or click the floating 3D book cover to save the complete multi-page PDF edition directly to your device.
+            </p>
+          `;
+          infoModal.classList.remove('hidden');
+        });
+
+        const openContactModal = function () {
+          document.getElementById('info-modal-kicker').textContent = 'PUBLISHING HOUSE INQUIRIES';
+          document.getElementById('info-modal-title').textContent = 'Contact Drovexra';
+          document.getElementById('info-modal-body').innerHTML = `
+            <p>For editorial submissions, manuscript contributions, or strategic inquiries regarding Drovexra publications:</p>
+            <div class="p-4 rounded bg-obsidian border border-white/10 space-y-2 text-xs editorial-mono">
+              <div><span class="text-muted">EDITORIAL DESK:</span> <span class="text-lavender">editorial@drovexra.com</span></div>
+              <div><span class="text-muted">ARCHIVE ACCESS:</span> <span class="text-offwhite">Open Public Digital Library (Free PDF Editions)</span></div>
+            </div>
+          `;
+          infoModal.classList.remove('hidden');
+        };
+
+        document.getElementById('footer-contact-btn').addEventListener('click', openContactModal);
+        document.getElementById('drawer-contact-btn').addEventListener('click', function () {
+          document.getElementById('mobile-nav-drawer').classList.add('hidden');
+          openContactModal();
+        });
+        document.getElementById('close-info-modal-btn').addEventListener('click', function () {
+          infoModal.classList.add('hidden');
+        });
+
+        // Two-Step Secret Code Gate triggered ONLY by hidden box next to All rights reserved
+        let secretGateStep = 1;
+        let ownerAuthorized = false;
+        const secretGateModal = document.getElementById('secret-gate-modal');
+        const secretCodeInput = document.getElementById('secret-code-input');
+        const secretStepBadge = document.getElementById('secret-gate-step-badge');
+        const secretInstruction = document.getElementById('secret-gate-instruction');
+        const secretError = document.getElementById('secret-gate-error');
+        const secretSubmitLabel = document.getElementById('submit-secret-gate-label');
+
+        function openSecretGateModal() {
+          if (ownerAuthorized) {
+            openCuratorModal(null);
+            return;
+          }
+          secretGateStep = 1;
+          secretStepBadge.textContent = 'Security Verification · Step 1 of 2';
+          secretInstruction.textContent = 'Enter the secret access code to initiate owner verification.';
+          secretSubmitLabel.textContent = 'Verify Code (1/2)';
+          secretError.classList.add('hidden');
+          secretCodeInput.value = '';
+          secretGateModal.classList.remove('hidden');
+          setTimeout(() => secretCodeInput.focus(), 40);
+        }
+
+        function closeSecretGateModal() {
+          secretGateModal.classList.add('hidden');
+          secretCodeInput.value = '';
+          secretError.classList.add('hidden');
+        }
+
+        document.getElementById('hidden-vault-trigger').addEventListener('click', openSecretGateModal);
+        document.getElementById('close-secret-gate-btn').addEventListener('click', closeSecretGateModal);
+        document.getElementById('cancel-secret-gate-btn').addEventListener('click', closeSecretGateModal);
+
+        document.getElementById('secret-gate-form').addEventListener('submit', function (e) {
+          e.preventDefault();
+          const candidate = secretCodeInput.value;
+          if (secretGateStep === 1) {
+            if (DrovexraCryptoVault.verifyOwnerGateStage(1, candidate)) {
+              secretGateStep = 2;
+              secretStepBadge.textContent = 'Security Verification · Step 2 of 2';
+              secretInstruction.textContent = 'First verification passed. Enter the secret code one more time to unlock Owner Studio.';
+              secretSubmitLabel.textContent = 'Confirm & Unlock (2/2)';
+              secretError.classList.add('hidden');
+              secretCodeInput.value = '';
+              secretCodeInput.focus();
+              showToast('Stage 1 verified. Please enter the code one more time.', 'success');
+            } else {
+              secretError.textContent = 'Invalid secret code. Access denied.';
+              secretError.classList.remove('hidden');
+              secretCodeInput.value = '';
+              secretCodeInput.focus();
+            }
+          } else if (secretGateStep === 2) {
+            if (DrovexraCryptoVault.verifyOwnerGateStage(2, candidate)) {
+              ownerAuthorized = true;
+              closeSecretGateModal();
+              openCuratorModal(null);
+              showToast('Owner Studio unlocked.', 'success');
+            } else {
+              secretGateStep = 1;
+              secretStepBadge.textContent = 'Security Verification · Step 1 of 2';
+              secretInstruction.textContent = 'Second confirmation did not match. Resetting to Step 1 of 2.';
+              secretSubmitLabel.textContent = 'Verify Code (1/2)';
+              secretError.textContent = 'Confirmation mismatch. Restarting verification.';
+              secretError.classList.remove('hidden');
+              secretCodeInput.value = '';
+              secretCodeInput.focus();
+            }
+          }
+        });
+
+        document.getElementById('close-curator-modal-btn').addEventListener('click', closeCuratorModal);
+        document.getElementById('owner-form-clear-btn').addEventListener('click', resetOwnerForm);
+
+        document.getElementById('restore-default-catalog-btn').addEventListener('click', function () {
+          booksCatalog = [];
+          uploadedPdfBlobs.clear();
+          saveCatalog(booksCatalog);
+          renderBooksGrid();
+          renderOwnerCatalogList();
+          showToast('Cleared local catalog. Showing Coming Soon PDF block.', 'success');
+        });
+
+        // Handle Owner Add / Update Book Form submission
+        document.getElementById('owner-book-form').addEventListener('submit', function (e) {
+          e.preventDefault();
+          const editId = document.getElementById('book-id-input').value.trim();
+          const title = document.getElementById('book-title-input').value.trim();
+          const author = document.getElementById('book-author-input').value.trim();
+          const category = document.getElementById('book-category-input').value;
+          const description = document.getElementById('book-desc-input').value.trim();
+          const coverFile = document.getElementById('book-cover-input').files[0];
+          const pdfFile = document.getElementById('book-pdf-input').files[0];
+          const autoCompilePdf = document.getElementById('book-generate-pdf-checkbox').checked;
+
+          if (!title || !author || !description) return;
+
+          const finalizeBookSave = async function (coverDataUrl) {
+            const hasPdf = Boolean(pdfFile) || autoCompilePdf;
+            const id = editId || ('drovexra-vol-' + Date.now());
+            const existingIdx = booksCatalog.findIndex(b => b.id === id);
+            const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'volume';
+            const timestamp = Date.now();
+
+            let remoteCoverPath = '';
+            let remotePdfPath = '';
+            let syncedToSupabase = false;
+
+            const client = getSupabaseClient();
+            if (client) {
+              try {
+                if (coverFile) {
+                  const ext = (coverFile.name.split('.').pop() || 'jpg').toLowerCase();
+                  remoteCoverPath = timestamp + '-' + slug + '.' + ext;
+                  const upCover = await client.storage.from(COVER_BUCKET).upload(remoteCoverPath, coverFile, { upsert: true });
+                  if (upCover.error) remoteCoverPath = '';
+                }
+                if (pdfFile) {
+                  remotePdfPath = timestamp + '-' + slug + '.pdf';
+                  const upPdf = await client.storage.from(PDF_BUCKET).upload(remotePdfPath, pdfFile, { upsert: true, contentType: 'application/pdf' });
+                  if (upPdf.error) remotePdfPath = '';
+                }
+                const payload = {
+                  title: title,
+                  author: author,
+                  category: category,
+                  description: description,
+                  cover_path: remoteCoverPath || null,
+                  pdf_path: remotePdfPath || null
+                };
+                const ins = await client.from('books').insert([payload]).select();
+                if (!ins.error) {
+                  syncedToSupabase = true;
+                }
+              } catch (sbErr) {
+                // Fall back to local persistence if RLS blocks anon insert
+              }
+            }
+
+            const bookRecord = existingIdx >= 0 ? Object.assign({}, booksCatalog[existingIdx]) : {
+              id: id,
+              edition: 'EDITION ' + String(booksCatalog.length + 1).padStart(2, '0'),
+              pages: 42,
+              highlights: [
+                'Chapter I — Executive Thesis & Context',
+                'Chapter II — Core Frameworks & Practical Application'
+              ],
+              excerpt: description
+            };
+
+            bookRecord.title = title;
+            bookRecord.author = author;
+            bookRecord.category = category;
+            bookRecord.description = description;
+            if (remoteCoverPath) {
+              bookRecord.cover_path = remoteCoverPath;
+              bookRecord.coverImage = buildPublicStorageUrl(COVER_BUCKET, remoteCoverPath);
+            } else if (coverDataUrl) {
+              bookRecord.coverImage = coverDataUrl;
+            } else if (!bookRecord.coverImage) {
+              bookRecord.coverImage = COMING_SOON_COVER_SVG;
+            }
+
+            if (remotePdfPath) {
+              bookRecord.pdf_path = remotePdfPath;
+              bookRecord.pdfUrl = buildPublicStorageUrl(PDF_BUCKET, remotePdfPath);
+            }
+
+            bookRecord.pdfAvailable = hasPdf;
+            bookRecord.pdfFileName = pdfFile ? pdfFile.name : (title.replace(/[^a-zA-Z0-9]+/g, '_') + '.pdf');
+            bookRecord.fileSize = pdfFile ? ((pdfFile.size / 1024).toFixed(0) + ' KB') : (hasPdf ? '2.1 MB' : 'Pending Upload');
+
+            if (pdfFile) {
+              uploadedPdfBlobs.set(id, pdfFile);
+            }
+
+            if (existingIdx >= 0) {
+              booksCatalog[existingIdx] = bookRecord;
+            } else {
+              booksCatalog.unshift(bookRecord);
+            }
+
+            saveCatalog(booksCatalog);
+            if (syncedToSupabase) {
+              await fetchBooksFromSupabase();
+            } else {
+              renderBooksGrid();
+              renderOwnerCatalogList();
+            }
+            if (currentBook && currentBook.id === id && !document.getElementById('book-detail-view').classList.contains('view-hidden')) {
+              openBookDetailView(id);
+            }
+            resetOwnerForm();
+            closeCuratorModal();
+            showToast(syncedToSupabase ? ('Published "' + title + '" to Supabase!') : ('Saved "' + title + '" to library.'), 'success');
+          };
+
+          if (coverFile) {
+            const reader = new FileReader();
+            reader.onload = function (ev) {
+              finalizeBookSave(ev.target.result);
+            };
+            reader.readAsDataURL(coverFile);
+          } else {
+            finalizeBookSave(null);
+          }
+        });
+      }
+
+      // Fetch all books from Supabase public.books ordered by created_at descending
+      async function fetchBooksFromSupabase() {
+        const loadingEl = document.getElementById('supabase-loading-state');
+        const errorEl = document.getElementById('supabase-error-state');
+        const emptyEl = document.getElementById('library-empty-state');
+        const gridEl = document.getElementById('books-grid');
+        if (loadingEl) loadingEl.classList.remove('hidden');
+        if (errorEl) errorEl.classList.add('hidden');
+        if (emptyEl) emptyEl.classList.add('hidden');
+        if (gridEl) gridEl.innerHTML = '';
+
+        try {
+          let rows = null;
+          const client = getSupabaseClient();
+
+          if (client) {
+            const { data, error } = await client
+              .from('books')
+              .select('*')
+              .order('created_at', { ascending: false });
+            if (error) throw error;
+            rows = data;
+          } else {
+            // Direct REST v1 fallback using the obfuscated rest endpoint & anon key
+            const restUrl = DrovexraCryptoVault.getRestEndpoint() + 'books?select=*&order=created_at.desc';
+            const anonKey = DrovexraCryptoVault.getAnonKey();
+            const resp = await fetch(restUrl, {
+              headers: {
+                'apikey': anonKey,
+                'Authorization': 'Bearer ' + anonKey,
+                'Accept': 'application/json'
+              }
+            });
+            if (!resp.ok) {
+              throw new Error('Supabase REST responded with HTTP ' + resp.status);
+            }
+            rows = await resp.json();
+          }
+
+          if (loadingEl) loadingEl.classList.add('hidden');
+
+          if (!Array.isArray(rows) || rows.length === 0) {
+            booksCatalog = loadCatalog();
+            renderBooksGrid();
+            renderOwnerCatalogList();
+            return;
+          }
+
+          // Map Supabase rows to Drovexra editorial book records
+          booksCatalog = rows.map(function (row, idx) {
+            const coverUrl = row.cover_path
+              ? buildPublicStorageUrl(COVER_BUCKET, row.cover_path)
+              : (row.cover_url || COMING_SOON_COVER_SVG);
+            const pdfUrl = row.pdf_path
+              ? buildPublicStorageUrl(PDF_BUCKET, row.pdf_path)
+              : (row.pdf_url || '');
+            const hasPdf = Boolean(pdfUrl);
+            const rawPdfName = row.pdf_path ? String(row.pdf_path).split('/').pop() : '';
+
+            return {
+              id: String(row.id || ('sb-vol-' + idx)),
+              edition: row.edition || ('EDITION ' + String(idx + 1).padStart(2, '0')),
+              title: row.title || 'Untitled Drovexra Volume',
+              author: row.author || 'Drovexra Editorial',
+              category: row.category || 'Strategy & Business',
+              description: row.description || 'Curated digital monograph from the Drovexra library.',
+              pages: row.pages || 'PDF',
+              fileSize: hasPdf ? 'Supabase Storage' : 'Pending Upload',
+              coverImage: coverUrl,
+              cover_path: row.cover_path || '',
+              pdf_path: row.pdf_path || '',
+              pdfUrl: pdfUrl,
+              pdfAvailable: hasPdf,
+              pdfFileName: rawPdfName || ((row.title || 'drovexra_book').replace(/[^a-zA-Z0-9]+/g, '_') + '.pdf'),
+              created_at: row.created_at || null,
+              highlights: Array.isArray(row.highlights) && row.highlights.length
+                ? row.highlights
+                : [
+                    'Published in the Drovexra Digital Knowledge Library',
+                    'Direct open-access PDF hosted in Supabase Storage (book-pdfs)'
+                  ],
+              excerpt: row.excerpt || row.description || 'Explore ideas, strategies, and insights through carefully curated digital books.'
+            };
+          });
+
+          currentBook = booksCatalog[0];
+          renderBooksGrid();
+          renderOwnerCatalogList();
+        } catch (err) {
+          if (loadingEl) loadingEl.classList.add('hidden');
+          booksCatalog = loadCatalog();
+          renderBooksGrid();
+          renderOwnerCatalogList();
+        }
+      }
+
+      function wireSupabaseButtons() {
+        const retryBtn = document.getElementById('supabase-retry-btn');
+        if (retryBtn) {
+          retryBtn.addEventListener('click', function () {
+            fetchBooksFromSupabase();
+          });
+        }
+      }
+
+      // Initialize application immediately or on DOMContentLoaded
+      function bootDrovexraApp() {
+        if (window.__drovexraBooted) return;
+        window.__drovexraBooted = true;
+        renderBooksGrid();
+        initPredictiveArcCanvas();
+        attachStarPortalShaderButtons();
+        wireControls();
+        wireSupabaseButtons();
+        fetchBooksFromSupabase();
+      }
+      if (document.readyState === 'loading') {
+        window.addEventListener('DOMContentLoaded', bootDrovexraApp);
+      } else {
+        bootDrovexraApp();
+      }
+    })();
+  </script>
+</body>
+</html>
